@@ -10,7 +10,6 @@
 
 <div class="header">
     <h1>AlgoVis - Data Structures Visualizer</h1>
-    <p>Simple College Project</p>
 </div>
 
 <div class="nav">
@@ -23,7 +22,7 @@
 
 <div class="container">
     <h2>HashMap Visualizer</h2>
-    <p>HashMap stores key-value pairs. Hash function: sum of char codes % capacity. Collision handled by Separate Chaining (linked list at each bucket).</p>
+    <p>HashMap stores key-value pairs. Hash function: sum of char codes % capacity. Collision handled by Separate Chaining.</p>
 
     <div class="controls">
         <label>Key:</label>
@@ -67,10 +66,143 @@
         <li><b>Collision:</b> Multiple keys at same bucket stored as chain.</li>
     </ul>
 
-    <div class="code-box">Backend: backend/visualizers.cpp -> class HashMap { hashFunction(), insert(), search(), remove(), display() } uses Separate Chaining.
-Frontend: js/hashmap.js mirrors same hash and chaining logic.</div>
+    <div class="code-heading">CODE</div>
+    <div class="code-tabs">
+        <button class="code-tab active" onclick="switchCode('python', this)">Python</button>
+        <button class="code-tab" onclick="switchCode('cpp', this)">C++</button>
+        <button class="code-tab" onclick="switchCode('java', this)">Java</button>
+    </div>
+    <div class="code-panel">
+<pre id="code-python" class="code-content">cap = 8
+table = [[] for _ in range(cap)]
 
-    <div class="footer">AlgoVis - HashMap Module | Backend: C++ | Frontend: HTML/CSS/JS</div>
+def hash_fn(key):
+    return sum(ord(c) for c in key) % cap
+
+def insert(key, val):
+    idx = hash_fn(key)
+    for i,(k,v) in enumerate(table[idx]):
+        if k == key:
+            table[idx][i] = (key,val)
+            return
+    table[idx].append((key,val))
+
+def search(key):
+    idx = hash_fn(key)
+    for k,v in table[idx]:
+        if k == key: return v
+    return "Not found"
+
+def delete_key(key):
+    idx = hash_fn(key)
+    for i,(k,v) in enumerate(table[idx]):
+        if k == key:
+            table[idx].pop(i)
+            return True
+    return False
+
+def display():
+    for i in range(cap):
+        print(f"Bucket {i}: {table[i]}")
+
+# Example
+insert("Alice","25"); insert("Bob","30")
+print(search("Alice"))
+display()
+</pre>
+<pre id="code-cpp" class="code-content" style="display:none">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+const int CAP=8;
+vector&lt;pair&lt;string,string&gt;&gt; table[CAP];
+
+int hashFn(string key){
+    int sum=0;
+    for(char c: key) sum+=c;
+    return sum % CAP;
+}
+void insert(string key,string val){
+    int idx=hashFn(key);
+    for(auto &p: table[idx])
+        if(p.first==key){ p.second=val; return; }
+    table[idx].push_back({key,val});
+}
+string search(string key){
+    int idx=hashFn(key);
+    for(auto &p: table[idx])
+        if(p.first==key) return p.second;
+    return "Not found";
+}
+bool removeKey(string key){
+    int idx=hashFn(key);
+    for(int i=0;i&lt;table[idx].size();i++)
+        if(table[idx][i].first==key){
+            table[idx].erase(table[idx].begin()+i);
+            return true;
+        }
+    return false;
+}
+void display(){
+    for(int i=0;i&lt;CAP;i++){
+        cout&lt;&lt;"Bucket "&lt;&lt;i&lt;&lt;": ";
+        for(auto &p: table[i]) cout&lt;&lt;"["&lt;&lt;p.first&lt;&lt;":"&lt;&lt;p.second&lt;&lt;"] ";
+        cout&lt;&lt;endl;
+    }
+}
+int main(){
+    insert("Alice","25"); insert("Bob","30");
+    cout&lt;&lt;search("Alice")&lt;&lt;endl;
+    display();
+}
+</pre>
+<pre id="code-java" class="code-content" style="display:none">import java.util.*;
+
+class HashMap{
+    static int CAP=8;
+    static ArrayList&lt;String[]&gt; table[] = new ArrayList[CAP];
+    static{
+        for(int i=0;i&lt;CAP;i++) table[i]=new ArrayList&lt;&gt;();
+    }
+    static int hashFn(String key){
+        int sum=0;
+        for(char c: key.toCharArray()) sum+=c;
+        return sum % CAP;
+    }
+    static void insert(String key,String val){
+        int idx=hashFn(key);
+        for(String[] p: table[idx])
+            if(p[0].equals(key)){ p[1]=val; return; }
+        table[idx].add(new String[]{key,val});
+    }
+    static String search(String key){
+        int idx=hashFn(key);
+        for(String[] p: table[idx])
+            if(p[0].equals(key)) return p[1];
+        return "Not found";
+    }
+    static boolean removeKey(String key){
+        int idx=hashFn(key);
+        for(int i=0;i&lt;table[idx].size();i++)
+            if(table[idx].get(i)[0].equals(key)){
+                table[idx].remove(i); return true;
+            }
+        return false;
+    }
+    static void display(){
+        for(int i=0;i&lt;CAP;i++)
+            System.out.println("Bucket "+i+": "+table[i]);
+    }
+    public static void main(String args[]){
+        insert("Alice","25"); insert("Bob","30");
+        System.out.println(search("Alice"));
+        display();
+    }
+}
+</pre>
+    </div>
+
+    <div class="footer">AlgoVis - Data Structures Visualizer</div>
 </div>
 
 <script src="js/hashmap.js"></script>
