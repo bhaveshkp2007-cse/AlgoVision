@@ -10,7 +10,6 @@
 
 <div class="header">
     <h1>AlgoVis - Data Structures Visualizer</h1>
-    <p>Simple College Project</p>
 </div>
 
 <div class="nav">
@@ -23,8 +22,9 @@
 
 <div class="container">
     <h2>Queue Visualizer (FIFO)</h2>
-    <p>Queue is First In First Out. First element inserted is removed first. Like a line of people.</p>
+    <p>Queue is First In First Out. First element inserted is removed first.</p>
 
+    <h3>Simple Queue</h3>
     <div class="controls">
         <label>Enter value:</label>
         <input type="text" id="queueInput" class="input-box" placeholder="e.g. 10">
@@ -36,7 +36,6 @@
 
     <div id="message" class="message">Ready. Enqueue values. Capacity is 8.</div>
 
-    <h3>Queue Display</h3>
     <div id="queueDisplay" class="display-area"></div>
 
     <div class="info-box">
@@ -46,18 +45,219 @@
         Is Full? <span id="isFullVal">No</span>
     </div>
 
+    <h3>Circular Queue</h3>
+    <p>Circular Queue reuses empty spaces. Rear wraps to beginning when it reaches end. Capacity is 6.</p>
+    <div class="controls">
+        <label>Enter value:</label>
+        <input type="text" id="cqInput" class="input-box" placeholder="value">
+        <button class="btn" onclick="cqEnqueue()">Enqueue</button>
+        <button class="btn btn-grey" onclick="cqDequeue()">Dequeue</button>
+        <button class="btn btn-grey" onclick="cqFrontFn()">Front</button>
+        <button class="btn btn-grey" onclick="cqRearFn()">Rear</button>
+        <button class="btn btn-dark" onclick="cqClear()">Clear</button>
+    </div>
+    <div id="cqMessage" class="message">Ready. Circular queue operations.</div>
+    <div id="cqDisplay" class="display-area"></div>
+    <div class="info-box">
+        Front Index: <span id="cqFrontVal">-1</span> |
+        Rear Index: <span id="cqRearVal">-1</span> |
+        Size: <span id="cqSizeVal">0 / 6</span> |
+        Empty: front==-1 | Full: size==capacity
+    </div>
+
+    <h3>Priority Queue</h3>
+    <p>Priority Queue: <b>smaller number = higher priority</b>. Example: priority 1 is served before priority 3.</p>
+    <div class="controls">
+        <label>Value:</label>
+        <input type="text" id="pqVal" class="input-box" placeholder="task" style="width:100px;">
+        <label>Priority:</label>
+        <input type="number" id="pqPri" class="input-box" placeholder="1" style="width:60px;">
+        <button class="btn" onclick="pqInsert()">Insert</button>
+        <button class="btn btn-grey" onclick="pqDelete()">Delete Highest</button>
+        <button class="btn btn-dark" onclick="pqClear()">Clear</button>
+    </div>
+    <div id="pqMessage" class="message">Ready. Smaller priority number = higher priority.</div>
+    <div id="pqDisplay" class="display-area"></div>
+    <div class="info-box">Display is sorted by priority (highest priority at front)</div>
+
     <h3>How it works</h3>
     <ul>
         <li><b>Enqueue:</b> Add element at rear</li>
         <li><b>Dequeue:</b> Remove element from front</li>
-        <li><b>Front:</b> See front element without removing</li>
-        <li>Time complexity: O(1)</li>
+        <li><b>Circular:</b> Uses (rear+1)%capacity to wrap around</li>
+        <li><b>Priority:</b> Insert keeps list sorted by priority, delete removes highest priority</li>
     </ul>
 
-    <div class="code-box">Backend: backend/visualizers.cpp -> class Queue { enqueue(), dequeue(), getFront(), isEmpty(), isFull() }
-Frontend: js/queue.js mirrors same logic for browser display.</div>
+    <div class="code-heading">CODE</div>
+    <div class="code-tabs">
+        <button class="code-tab active" onclick="switchCode('python', this)">Python</button>
+        <button class="code-tab" onclick="switchCode('cpp', this)">C++</button>
+        <button class="code-tab" onclick="switchCode('java', this)">Java</button>
+    </div>
+    <div class="code-panel">
+<pre id="code-python" class="code-content"># Simple Queue
+queue = []
+def enqueue(x): queue.append(x)
+def dequeue():
+    if not queue: return "Underflow"
+    return queue.pop(0)
+def front():
+    return queue[0] if queue else "Empty"
 
-    <div class="footer">AlgoVis - Queue Module | Backend: C++ | Frontend: HTML/CSS/JS</div>
+# Circular Queue
+cap = 6
+arr = [None]*cap
+front = rear = -1
+size = 0
+def cq_enqueue(x):
+    global front, rear, size
+    if size==cap: return "Full"
+    if front==-1: front=rear=0
+    else: rear=(rear+1)%cap
+    arr[rear]=x; size+=1
+def cq_dequeue():
+    global front, rear, size
+    if size==0: return "Empty"
+    val=arr[front]; arr[front]=None
+    if size==1: front=rear=-1
+    else: front=(front+1)%cap
+    size-=1; return val
+
+# Priority Queue (smaller number = higher priority)
+pq = []
+def pq_insert(val, pri):
+    pq.append((pri,val))
+    pq.sort()  # sort by priority
+def pq_delete():
+    if not pq: return "Empty"
+    return pq.pop(0)
+
+# Example
+enqueue(10); enqueue(20); print(front())
+cq_enqueue(5); cq_enqueue(10)
+pq_insert("TaskA",2); pq_insert("TaskB",1)
+print(pq_delete())  # TaskB with priority 1
+</pre>
+<pre id="code-cpp" class="code-content" style="display:none">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+using namespace std;
+
+// Simple Queue
+class Queue{
+    int arr[20], front=0, rear=-1, cap=8, cnt=0;
+public:
+    bool enqueue(int x){
+        if(cnt==cap) return false;
+        rear=(rear+1)%cap; arr[rear]=x; cnt++; return true;
+    }
+    int dequeue(){
+        if(cnt==0) return -1;
+        int v=arr[front]; front=(front+1)%cap; cnt--; return v;
+    }
+    int getFront(){ return cnt==0?-1:arr[front]; }
+};
+
+// Circular Queue
+class CircularQueue{
+    int arr[6], front=-1, rear=-1, cap=6, cnt=0;
+public:
+    bool enqueue(int x){
+        if(cnt==cap) return false;
+        if(front==-1) front=rear=0;
+        else rear=(rear+1)%cap;
+        arr[rear]=x; cnt++; return true;
+    }
+    int dequeue(){
+        if(cnt==0) return -1;
+        int v=arr[front];
+        if(cnt==1) front=rear=-1;
+        else front=(front+1)%cap;
+        cnt--; return v;
+    }
+};
+
+// Priority Queue: smaller number = higher priority
+struct Item{ int val, pri; };
+class PriorityQueue{
+    vector&lt;Item&gt; pq;
+public:
+    void insert(int v,int p){
+        pq.push_back({v,p});
+        sort(pq.begin(), pq.end(), [](Item a,Item b){return a.pri&lt;b.pri;});
+    }
+    Item remove(){
+        Item t=pq[0]; pq.erase(pq.begin()); return t;
+    }
+};
+
+int main(){
+    Queue q; q.enqueue(10); cout&lt;&lt;q.getFront()&lt;&lt;endl;
+    CircularQueue cq; cq.enqueue(5);
+    PriorityQueue pq; pq.insert(10,2); pq.insert(20,1);
+}
+</pre>
+<pre id="code-java" class="code-content" style="display:none">import java.util.*;
+
+// Simple Queue
+class MyQueue{
+    int arr[]=new int[20];
+    int front=0, rear=-1, cap=8, cnt=0;
+    boolean enqueue(int x){
+        if(cnt==cap) return false;
+        rear=(rear+1)%cap; arr[rear]=x; cnt++; return true;
+    }
+    int dequeue(){
+        if(cnt==0) return -1;
+        int v=arr[front]; front=(front+1)%cap; cnt--; return v;
+    }
+    int getFront(){ return cnt==0?-1:arr[front]; }
+}
+
+// Circular Queue
+class CircularQueue{
+    int arr[]=new int[6];
+    int front=-1, rear=-1, cap=6, cnt=0;
+    boolean enqueue(int x){
+        if(cnt==cap) return false;
+        if(front==-1) front=rear=0;
+        else rear=(rear+1)%cap;
+        arr[rear]=x; cnt++; return true;
+    }
+    int dequeue(){
+        if(cnt==0) return -1;
+        int v=arr[front];
+        if(cnt==1) front=rear=-1;
+        else front=(front+1)%cap;
+        cnt--; return v;
+    }
+}
+
+// Priority Queue: smaller number = higher priority
+class PriorityQueue{
+    class Item{ int val, pri; Item(int v,int p){val=v; pri=p;} }
+    ArrayList&lt;Item&gt; pq=new ArrayList&lt;&gt;();
+    void insert(int v,int p){
+        pq.add(new Item(v,p));
+        pq.sort((a,b)-&gt;a.pri-b.pri);
+    }
+    Item remove(){
+        return pq.remove(0);
+    }
+}
+
+public class Main{
+    public static void main(String args[]){
+        MyQueue q=new MyQueue(); q.enqueue(10);
+        CircularQueue cq=new CircularQueue(); cq.enqueue(5);
+        PriorityQueue pq=new PriorityQueue();
+        pq.insert(10,2); pq.insert(20,1);
+    }
+}
+</pre>
+    </div>
+
+    <div class="footer">AlgoVis - Data Structures Visualizer</div>
 </div>
 
 <script src="js/queue.js"></script>

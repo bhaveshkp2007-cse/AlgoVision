@@ -10,7 +10,6 @@
 
 <div class="header">
     <h1>AlgoVis - Data Structures Visualizer</h1>
-    <p>Simple College Project</p>
 </div>
 
 <div class="nav">
@@ -23,7 +22,7 @@
 
 <div class="container">
     <h2>Stack Visualizer (LIFO)</h2>
-    <p>Stack is Last In First Out. Last element inserted is removed first. This is a simple array-based stack.</p>
+    <p>Stack is Last In First Out. Last element inserted is removed first.</p>
 
     <div class="controls">
         <label>Enter value:</label>
@@ -46,18 +45,231 @@
         Is Full? <span id="isFullVal">No</span>
     </div>
 
+    <h3>Postfix Expression Evaluation</h3>
+    <p>Enter postfix expression with space between tokens. Example: <b>5 2 3 * +</b></p>
+    <div class="controls">
+        <input type="text" id="postfixInput" class="input-box" placeholder="e.g. 5 3 +" style="width:220px;">
+        <button class="btn" onclick="evaluatePostfix()">Evaluate Postfix</button>
+    </div>
+    <div id="postfixResult" class="message">Result will appear here</div>
+
+    <h3>Prefix Expression Evaluation</h3>
+    <p>Enter prefix expression with space between tokens. Example: <b>+ 5 * 2 3</b></p>
+    <div class="controls">
+        <input type="text" id="prefixInput" class="input-box" placeholder="e.g. + 5 3" style="width:220px;">
+        <button class="btn" onclick="evaluatePrefix()">Evaluate Prefix</button>
+    </div>
+    <div id="prefixResult" class="message">Result will appear here</div>
+
     <h3>How it works</h3>
     <ul>
         <li><b>Push:</b> Add element at top (top++)</li>
         <li><b>Pop:</b> Remove element from top (top--)</li>
         <li><b>Peek:</b> See top element without removing</li>
-        <li>Time complexity: O(1) for all operations</li>
+        <li><b>Postfix:</b> Scan left to right, push operands, apply operator on two top values</li>
+        <li><b>Prefix:</b> Scan right to left, same logic</li>
     </ul>
 
-    <div class="code-box">Backend logic in backend/visualizers.cpp -> class Stack { push(), pop(), peek(), isEmpty(), isFull() }
-Frontend: js/stack.js handles button clicks and updates display.</div>
+    <div class="code-heading">CODE</div>
+    <div class="code-tabs">
+        <button class="code-tab active" onclick="switchCode('python', this)">Python</button>
+        <button class="code-tab" onclick="switchCode('cpp', this)">C++</button>
+        <button class="code-tab" onclick="switchCode('java', this)">Java</button>
+    </div>
+    <div class="code-panel">
+<pre id="code-python" class="code-content"># Stack using list
+stack = []
 
-    <div class="footer">AlgoVis - Stack Module | Backend: C++ | Frontend: HTML/CSS/JS</div>
+def push(x):
+    stack.append(x)
+
+def pop():
+    if not stack:
+        return "Underflow"
+    return stack.pop()
+
+def peek():
+    if not stack:
+        return "Empty"
+    return stack[-1]
+
+def display():
+    print(stack)
+
+# Postfix evaluation
+def evaluate_postfix(expr):
+    s = []
+    for token in expr.split():
+        if token.lstrip('-').isdigit():
+            s.append(int(token))
+        else:
+            b = s.pop(); a = s.pop()
+            if token == '+': s.append(a+b)
+            elif token == '-': s.append(a-b)
+            elif token == '*': s.append(a*b)
+            elif token == '/': s.append(a/b)
+            elif token == '^': s.append(a**b)
+    return s[-1] if s else None
+
+# Prefix evaluation
+def evaluate_prefix(expr):
+    s = []
+    for token in reversed(expr.split()):
+        if token.lstrip('-').isdigit():
+            s.append(int(token))
+        else:
+            a = s.pop(); b = s.pop()
+            if token == '+': s.append(a+b)
+            elif token == '-': s.append(a-b)
+            elif token == '*': s.append(a*b)
+            elif token == '/': s.append(a/b)
+    return s[-1] if s else None
+
+# Example
+push(10); push(20)
+print(peek())  # 20
+print(evaluate_postfix("5 2 3 * +"))  # 11
+print(evaluate_prefix("+ 5 * 2 3"))  # 11
+</pre>
+<pre id="code-cpp" class="code-content" style="display:none">#include &lt;iostream&gt;
+#include &lt;stack&gt;
+#include &lt;sstream&gt;
+using namespace std;
+
+class Stack {
+    int arr[20], top, cap;
+public:
+    Stack(int c=8){ cap=c; top=-1; }
+    bool push(int x){
+        if(top==cap-1) return false;
+        arr[++top]=x; return true;
+    }
+    int pop(){
+        if(top==-1) return -1;
+        return arr[top--];
+    }
+    int peek(){
+        if(top==-1) return -1;
+        return arr[top];
+    }
+    void display(){
+        for(int i=top;i>=0;i--) cout&lt;&lt;arr[i]&lt;&lt;" ";
+        cout&lt;&lt;endl;
+    }
+};
+
+int evaluatePostfix(string expr){
+    stack&lt;int&gt; s;
+    stringstream ss(expr);
+    string t;
+    while(ss&gt;&gt;t){
+        if(isdigit(t[0]) || (t[0]=='-' && t.size()&gt;1))
+            s.push(stoi(t));
+        else{
+            int b=s.top(); s.pop();
+            int a=s.top(); s.pop();
+            if(t=="+") s.push(a+b);
+            else if(t=="-") s.push(a-b);
+            else if(t=="*") s.push(a*b);
+            else if(t=="/") s.push(a/b);
+        }
+    }
+    return s.top();
+}
+
+int evaluatePrefix(string expr){
+    stack&lt;int&gt; s;
+    // split and process reverse
+    vector&lt;string&gt; tokens;
+    stringstream ss(expr);
+    string t; while(ss&gt;&gt;t) tokens.push_back(t);
+    for(int i=tokens.size()-1;i&gt;=0;i--){
+        t=tokens[i];
+        if(isdigit(t[0]) || (t[0]=='-' && t.size()&gt;1))
+            s.push(stoi(t));
+        else{
+            int a=s.top(); s.pop();
+            int b=s.top(); s.pop();
+            if(t=="+") s.push(a+b);
+            else if(t=="-") s.push(a-b);
+            else if(t=="*") s.push(a*b);
+            else if(t=="/") s.push(a/b);
+        }
+    }
+    return s.top();
+}
+
+int main(){
+    Stack s;
+    s.push(10); s.push(20);
+    cout&lt;&lt;s.peek()&lt;&lt;endl;
+    cout&lt;&lt;evaluatePostfix("5 2 3 * +")&lt;&lt;endl;
+    cout&lt;&lt;evaluatePrefix("+ 5 * 2 3")&lt;&lt;endl;
+}
+</pre>
+<pre id="code-java" class="code-content" style="display:none">import java.util.Stack;
+
+class MyStack {
+    int arr[] = new int[20];
+    int top = -1, cap = 8;
+    boolean push(int x){
+        if(top==cap-1) return false;
+        arr[++top]=x; return true;
+    }
+    int pop(){
+        if(top==-1) return -1;
+        return arr[top--];
+    }
+    int peek(){
+        if(top==-1) return -1;
+        return arr[top];
+    }
+    void display(){
+        for(int i=top;i&gt;=0;i--) System.out.print(arr[i]+" ");
+        System.out.println();
+    }
+    static int evaluatePostfix(String expr){
+        Stack&lt;Integer&gt; s = new Stack&lt;&gt;();
+        for(String t: expr.split(" ")){
+            if(t.matches("-?\\d+")) s.push(Integer.parseInt(t));
+            else{
+                int b=s.pop(), a=s.pop();
+                if(t.equals("+")) s.push(a+b);
+                else if(t.equals("-")) s.push(a-b);
+                else if(t.equals("*")) s.push(a*b);
+                else if(t.equals("/")) s.push(a/b);
+            }
+        }
+        return s.peek();
+    }
+    static int evaluatePrefix(String expr){
+        Stack&lt;Integer&gt; s = new Stack&lt;&gt;();
+        String[] tok = expr.split(" ");
+        for(int i=tok.length-1;i&gt;=0;i--){
+            String t=tok[i];
+            if(t.matches("-?\\d+")) s.push(Integer.parseInt(t));
+            else{
+                int a=s.pop(), b=s.pop();
+                if(t.equals("+")) s.push(a+b);
+                else if(t.equals("-")) s.push(a-b);
+                else if(t.equals("*")) s.push(a*b);
+                else if(t.equals("/")) s.push(a/b);
+            }
+        }
+        return s.peek();
+    }
+    public static void main(String args[]){
+        MyStack s=new MyStack();
+        s.push(10); s.push(20);
+        System.out.println(s.peek());
+        System.out.println(evaluatePostfix("5 2 3 * +"));
+        System.out.println(evaluatePrefix("+ 5 * 2 3"));
+    }
+}
+</pre>
+    </div>
+
+    <div class="footer">AlgoVis - Data Structures Visualizer</div>
 </div>
 
 <script src="js/stack.js"></script>

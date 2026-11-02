@@ -130,5 +130,12 @@ function clearList() {
     updateInfo(); render();
 }
 
+function switchCode(lang, btn) {
+    document.querySelectorAll(".code-content").forEach(el=> el.style.display="none");
+    document.getElementById("code-"+lang).style.display="block";
+    document.querySelectorAll(".code-tab").forEach(b=> b.classList.remove("active"));
+    btn.classList.add("active");
+}
+
 updateInfo();
 render();

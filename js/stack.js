@@ -87,6 +87,71 @@ function clearStack() {
     render();
 }
 
+// Postfix evaluation: tokens separated by space
+function evaluatePostfix() {
+    let input = document.getElementById("postfixInput");
+    let expr = input.value.trim();
+    let out = document.getElementById("postfixResult");
+    if (expr === "") { out.textContent = "Please enter postfix expression"; out.className="message error"; return; }
+    let tokens = expr.split(/\s+/);
+    let st = [];
+    for (let t of tokens) {
+        if (!isNaN(t) && t !== "") {
+            st.push(parseFloat(t));
+        } else if (["+", "-", "*", "/", "^", "%"].includes(t)) {
+            if (st.length < 2) { out.textContent="Invalid expression: not enough operands for " + t; out.className="message error"; return; }
+            let b = st.pop(), a = st.pop();
+            let r = 0;
+            if (t==="+") r=a+b;
+            else if (t==="-") r=a-b;
+            else if (t==="*") r=a*b;
+            else if (t==="/") { if(b===0){ out.textContent="Error: Division by zero"; out.className="message error"; return;} r=a/b; }
+            else if (t==="^") r=Math.pow(a,b);
+            else if (t==="%") r=a%b;
+            st.push(r);
+        } else { out.textContent="Invalid token: " + t; out.className="message error"; return; }
+    }
+    if (st.length !== 1) { out.textContent="Invalid expression: extra operands"; out.className="message error"; return; }
+    out.textContent = "Postfix Result: " + st[0];
+    out.className="message success";
+}
+
+function evaluatePrefix() {
+    let input = document.getElementById("prefixInput");
+    let expr = input.value.trim();
+    let out = document.getElementById("prefixResult");
+    if (expr === "") { out.textContent = "Please enter prefix expression"; out.className="message error"; return; }
+    let tokens = expr.split(/\s+/);
+    let st = [];
+    for (let i=tokens.length-1; i>=0; i--) {
+        let t = tokens[i];
+        if (!isNaN(t) && t !== "") {
+            st.push(parseFloat(t));
+        } else if (["+", "-", "*", "/", "^", "%"].includes(t)) {
+            if (st.length < 2) { out.textContent="Invalid expression: not enough operands for " + t; out.className="message error"; return; }
+            let a = st.pop(), b = st.pop();
+            let r = 0;
+            if (t==="+") r=a+b;
+            else if (t==="-") r=a-b;
+            else if (t==="*") r=a*b;
+            else if (t==="/") { if(b===0){ out.textContent="Error: Division by zero"; out.className="message error"; return;} r=a/b; }
+            else if (t==="^") r=Math.pow(a,b);
+            else if (t==="%") r=a%b;
+            st.push(r);
+        } else { out.textContent="Invalid token: " + t; out.className="message error"; return; }
+    }
+    if (st.length !== 1) { out.textContent="Invalid expression"; out.className="message error"; return; }
+    out.textContent = "Prefix Result: " + st[0];
+    out.className="message success";
+}
+
+function switchCode(lang, btn) {
+    document.querySelectorAll(".code-content").forEach(el=> el.style.display="none");
+    document.getElementById("code-"+lang).style.display="block";
+    document.querySelectorAll(".code-tab").forEach(b=> b.classList.remove("active"));
+    btn.classList.add("active");
+}
+
 // init
 updateInfo();
 render();

@@ -10,7 +10,6 @@
 
 <div class="header">
     <h1>AlgoVis - Data Structures Visualizer</h1>
-    <p>Simple College Project</p>
 </div>
 
 <div class="nav">
@@ -23,7 +22,7 @@
 
 <div class="container">
     <h2>Linked List Visualizer (Singly)</h2>
-    <p>Linked List is collection of nodes. Each node has data and pointer to next node. HEAD points to first node.</p>
+    <p>Linked List is collection of nodes. Each node has data and pointer to next node.</p>
 
     <div class="controls">
         <label>Value:</label>
@@ -64,10 +63,162 @@
         <li><b>Display:</b> Traverse and show all nodes -> NULL</li>
     </ul>
 
-    <div class="code-box">Backend: backend/visualizers.cpp -> struct Node, class LinkedList { insertAtBeginning(), insertAtEnd(), delete..., search(), display() }
-Frontend: js/linkedlist.js uses array to simulate same pointer logic.</div>
+    <div class="code-heading">CODE</div>
+    <div class="code-tabs">
+        <button class="code-tab active" onclick="switchCode('python', this)">Python</button>
+        <button class="code-tab" onclick="switchCode('cpp', this)">C++</button>
+        <button class="code-tab" onclick="switchCode('java', this)">Java</button>
+    </div>
+    <div class="code-panel">
+<pre id="code-python" class="code-content">class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
 
-    <div class="footer">AlgoVis - Linked List Module | Backend: C++ | Frontend: HTML/CSS/JS</div>
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_begin(self, val):
+        n = Node(val)
+        n.next = self.head
+        self.head = n
+
+    def insert_end(self, val):
+        n = Node(val)
+        if not self.head:
+            self.head = n; return
+        t = self.head
+        while t.next: t = t.next
+        t.next = n
+
+    def delete_begin(self):
+        if not self.head: return "Empty"
+        val = self.head.data
+        self.head = self.head.next
+        return val
+
+    def search(self, val):
+        t = self.head; pos = 0
+        while t:
+            if t.data == val: return pos
+            t = t.next; pos += 1
+        return -1
+
+    def display(self):
+        t = self.head
+        while t:
+            print(t.data, end=" -> ")
+            t = t.next
+        print("NULL")
+
+# Example
+ll = LinkedList()
+ll.insert_end(10); ll.insert_end(20)
+ll.insert_begin(5)
+ll.display()  # 5 -> 10 -> 20 -> NULL
+print(ll.search(10))  # 1
+</pre>
+<pre id="code-cpp" class="code-content" style="display:none">#include &lt;iostream&gt;
+using namespace std;
+
+struct Node{
+    int data; Node* next;
+    Node(int v){ data=v; next=NULL; }
+};
+
+class LinkedList{
+    Node* head = NULL;
+public:
+    void insertBegin(int v){
+        Node* n = new Node(v);
+        n-&gt;next = head;
+        head = n;
+    }
+    void insertEnd(int v){
+        Node* n = new Node(v);
+        if(!head){ head=n; return; }
+        Node* t=head;
+        while(t-&gt;next) t=t-&gt;next;
+        t-&gt;next=n;
+    }
+    int deleteBegin(){
+        if(!head) return -1;
+        Node* t=head; int v=t-&gt;data;
+        head=head-&gt;next; delete t;
+        return v;
+    }
+    int search(int v){
+        Node* t=head; int pos=0;
+        while(t){
+            if(t-&gt;data==v) return pos;
+            t=t-&gt;next; pos++;
+        }
+        return -1;
+    }
+    void display(){
+        Node* t=head;
+        while(t){ cout&lt;&lt;t-&gt;data&lt;&lt;" -&gt; "; t=t-&gt;next; }
+        cout&lt;&lt;"NULL"&lt;&lt;endl;
+    }
+};
+
+int main(){
+    LinkedList ll;
+    ll.insertEnd(10); ll.insertEnd(20);
+    ll.insertBegin(5);
+    ll.display();
+    cout&lt;&lt;ll.search(10)&lt;&lt;endl;
+}
+</pre>
+<pre id="code-java" class="code-content" style="display:none">class Node{
+    int data; Node next;
+    Node(int v){ data=v; next=null; }
+}
+
+class LinkedList{
+    Node head=null;
+    void insertBegin(int v){
+        Node n=new Node(v);
+        n.next=head; head=n;
+    }
+    void insertEnd(int v){
+        Node n=new Node(v);
+        if(head==null){ head=n; return; }
+        Node t=head;
+        while(t.next!=null) t=t.next;
+        t.next=n;
+    }
+    int deleteBegin(){
+        if(head==null) return -1;
+        int v=head.data; head=head.next;
+        return v;
+    }
+    int search(int v){
+        Node t=head; int pos=0;
+        while(t!=null){
+            if(t.data==v) return pos;
+            t=t.next; pos++;
+        }
+        return -1;
+    }
+    void display(){
+        Node t=head;
+        while(t!=null){ System.out.print(t.data+\" -> \"); t=t.next; }
+        System.out.println(\"NULL\");
+    }
+    public static void main(String args[]){
+        LinkedList ll=new LinkedList();
+        ll.insertEnd(10); ll.insertEnd(20);
+        ll.insertBegin(5);
+        ll.display();
+        System.out.println(ll.search(10));
+    }
+}
+</pre>
+    </div>
+
+    <div class="footer">AlgoVis - Data Structures Visualizer</div>
 </div>
 
 <script src="js/linkedlist.js"></script>
