@@ -1182,6 +1182,7 @@ class LinkedListStack:
         // ----------------------------------------------------
         // NAVIGATION HANDLER
         // ----------------------------------------------------
+        //Handles navigation between sections
         function showSection(sectionId) {
             // Hide all sections
             const sections = document.querySelectorAll('.section-pane');
@@ -1191,30 +1192,31 @@ class LinkedListStack:
             const navLinks = document.querySelectorAll('.navbar a');
             navLinks.forEach(link => link.classList.remove('active'));
 
-            // Show target section & highlight navbar
+            // Show target section & highlight navbar(display the section selected by the user from the navbar )
             const targetSection = document.getElementById('section-' + sectionId);
             if (targetSection) {
                 targetSection.style.display = 'block';
             }
+            //Highlight the active navbar link corresponding to the section being displayed
             const activeNav = document.getElementById('nav-' + sectionId);
             if (activeNav) {
                 activeNav.classList.add('active');
             }
         }
 
-        // ====================================================
+        // 
         // 1. PUSH & POP SECTION LOGIC
-        // ====================================================
-        let ppCapacity = 5;
-        let ppStack = [];
-        let ppHistory = [];
+        // 
+        let ppCapacity = 5;//max element 
+        let ppStack = [];//elements in the stack
+        let ppHistory = [];//history of operations performed on the stack
         let ppStates = [];
-        let ppCurrentStepIdx = 0;
-        let ppPlayInterval = null;
-        let ppPeekHighlightedIdx = -1;
+        let ppCurrentStepIdx = 0;//index of the current state in the ppStates array
+        let ppPlayInterval = null;//interval for autoplaying the steps
+        let ppPeekHighlightedIdx = -1;//index of the highlighted element during peek operation
 
-        function ppInit() {
-            ppCapacity = parseInt(document.getElementById('pp-capacity').value) || 5;
+        function ppInit() {//initialize the stack
+            ppCapacity = parseInt(document.getElementById('pp-capacity').value) || 5;//get the capacity from the input field
             ppStack = [];
             ppHistory = [];
             ppStates = [{
@@ -1229,7 +1231,7 @@ class LinkedListStack:
             ppRenderCurrentState();
         }
 
-        function ppUpdateCapacity() {
+        function ppUpdateCapacity() {//update the capacity of the stack
             const cap = parseInt(document.getElementById('pp-capacity').value);
             if (isNaN(cap) || cap < 2 || cap > 10) {
                 alert("Please enter a capacity between 2 and 10.");
@@ -1239,7 +1241,7 @@ class LinkedListStack:
             ppReset();
         }
 
-        function ppPush() {
+        function ppPush() {//push a value onto the stack
             const valInput = document.getElementById('pp-value');
             const val = valInput.value.trim();
             if (val === '') {
@@ -1284,7 +1286,7 @@ class LinkedListStack:
             ppRenderCurrentState();
         }
 
-        function ppPop() {
+        function ppPop() {//pop a value from the stack
             const current = ppStates[ppCurrentStepIdx];
             const currentStack = [...current.stack];
 
@@ -1298,7 +1300,7 @@ class LinkedListStack:
                     detail: "Stack Underflow! Tried to pop but stack is empty (top = -1).",
                     highlightIdx: -1,
                     status: "underflow"
-                };
+                };//create a new state for underflow
                 ppStates.push(newState);
                 ppCurrentStepIdx = ppStates.length - 1;
                 ppAddHistory("POP -> FAILED (Underflow)");
@@ -1306,7 +1308,7 @@ class LinkedListStack:
                 return;
             }
 
-            ppHideAlert();
+            ppHideAlert();//hide any previous alert
             const poppedVal = currentStack.pop();
             const newState = {
                 stack: currentStack,
@@ -1323,7 +1325,7 @@ class LinkedListStack:
             ppRenderCurrentState();
         }
 
-        function ppPeek() {
+        function ppPeek() {//peek at the top value of the stack without removing it
             const current = ppStates[ppCurrentStepIdx];
             const currentStack = [...current.stack];
 
@@ -1332,7 +1334,7 @@ class LinkedListStack:
                 return;
             }
 
-            ppHideAlert();
+            ppHideAlert();//hide any previous alert
             const topVal = currentStack[currentStack.length - 1];
             const newState = {
                 stack: currentStack,
@@ -1343,24 +1345,24 @@ class LinkedListStack:
                 status: "peek"
             };
             ppStates.push(newState);
-            ppCurrentStepIdx = ppStates.length - 1;
+            ppCurrentStepIdx = ppStates.length - 1;//update current step index to the new state
             ppAddHistory("PEEK -> Returned: " + topVal + " (Stack unchanged)");
             ppRenderCurrentState();
         }
 
-        function ppReset() {
+        function ppReset() {//reset the stack and history
             ppStopPlay();
             ppInit();
             document.getElementById('pp-history-list').innerHTML = '<div class="history-item text-muted">Stack reset. Ready for operations.</div>';
             ppHideAlert();
         }
 
-        function ppLoadExample() {
+        function ppLoadExample() {//load a predefined sequence of operations for demonstration
             document.getElementById('pp-sequence').value = "PUSH 15\nPUSH 25\nPUSH 35\nPEEK\nPOP\nPUSH 45\nPUSH 55\nPUSH 65\nPOP";
             ppRunSequence();
         }
 
-        function ppRunSequence() {
+        function ppRunSequence() {//run the sequence of operations defined in the textarea
             ppStopPlay();
             const text = document.getElementById('pp-sequence').value;
             const lines = text.split('\n');
@@ -1375,14 +1377,14 @@ class LinkedListStack:
                 status: "normal"
             }];
 
-            let tempStack = [];
-            let hist = [];
+            let tempStack = [];//temporary stack to simulate operations
+            let hist = [];//history of operations for display
 
             for (let i = 0; i < lines.length; i++) {
                 const rawLine = lines[i].trim();
                 if (!rawLine) continue;
 
-                const parts = rawLine.split(/\s+/);
+                const parts = rawLine.split(/\s+/);//split the line into command and arguments
                 const cmd = parts[0].toUpperCase();
                 const arg = parts.slice(1).join(" ");
 
@@ -1399,7 +1401,7 @@ class LinkedListStack:
                         });
                         hist.push("#" + (i + 1) + " PUSH " + val + " -> FAILED (Overflow)");
                     } else {
-                        tempStack.push(val);
+                        tempStack.push(val);//push the value onto the temporary stack
                         ppStates.push({
                             stack: [...tempStack],
                             top: tempStack.length - 1,
@@ -1410,7 +1412,7 @@ class LinkedListStack:
                         });
                         hist.push("#" + (i + 1) + " PUSH " + val + " -> [" + tempStack.join(", ") + "]");
                     }
-                } else if (cmd === 'POP') {
+                } else if (cmd === 'POP') {//  pop operation
                     if (tempStack.length === 0) {
                         ppStates.push({
                             stack: [],
@@ -1434,7 +1436,7 @@ class LinkedListStack:
                         });
                         hist.push("#" + (i + 1) + " POP -> Returned: " + popped);
                     }
-                } else if (cmd === 'PEEK') {
+                } else if (cmd === 'PEEK') {// peek operation
                     if (tempStack.length === 0) {
                         ppStates.push({
                             stack: [],
@@ -1461,7 +1463,7 @@ class LinkedListStack:
             }
 
             // Populate history list
-            const histEl = document.getElementById('pp-history-list');
+            const histEl = document.getElementById('pp-history-list');//get the history list element
             histEl.innerHTML = '';
             hist.forEach(h => {
                 const item = document.createElement('div');
@@ -1474,7 +1476,7 @@ class LinkedListStack:
             ppRenderCurrentState();
         }
 
-        function ppRenderCurrentState() {
+        function ppRenderCurrentState() {//render the current state of the stack visualization
             if (ppStates.length === 0) return;
             const state = ppStates[ppCurrentStepIdx];
             const bucketEl = document.getElementById('pp-stack-bucket');
@@ -1548,14 +1550,14 @@ class LinkedListStack:
             }
         }
 
-        function ppPrevStep() {
+        function ppPrevStep() {//go to the previous step in the state history
             if (ppCurrentStepIdx > 0) {
                 ppCurrentStepIdx--;
                 ppRenderCurrentState();
             }
         }
 
-        function ppNextStep() {
+        function ppNextStep() {//go to the next step in the state history
             if (ppCurrentStepIdx < ppStates.length - 1) {
                 ppCurrentStepIdx++;
                 ppRenderCurrentState();
@@ -1564,7 +1566,7 @@ class LinkedListStack:
             }
         }
 
-        function ppTogglePlay() {
+        function ppTogglePlay() {//toggle autoplay of the steps
             if (ppPlayInterval) {
                 ppStopPlay();
             } else {
@@ -1584,7 +1586,7 @@ class LinkedListStack:
             }
         }
 
-        function ppStopPlay() {
+        function ppStopPlay() {//stop the autoplay of steps
             if (ppPlayInterval) {
                 clearInterval(ppPlayInterval);
                 ppPlayInterval = null;
@@ -1597,13 +1599,13 @@ class LinkedListStack:
             }
         }
 
-        function ppShowAlert(msg) {
+        function ppShowAlert(msg) {//display an alert message in the UI
             const el = document.getElementById('pp-alert');
             el.textContent = msg;
             el.style.display = 'block';
         }
 
-        function ppHideAlert() {
+        function ppHideAlert() {// hide the alert message in the UI
             document.getElementById('pp-alert').style.display = 'none';
         }
 
@@ -1615,26 +1617,26 @@ class LinkedListStack:
             histEl.prepend(item);
         }
 
-        // ====================================================
+        
         // 2. PEEK SECTION LOGIC
-        // ====================================================
+
         let peekStack = [15, 25, 35, 45];
         let peekCapacity = 5;
 
-        function peekRender(isPeeking = false) {
+        function peekRender(isPeeking = false) {//render the peek stack visualization
             const bucketEl = document.getElementById('peek-stack-bucket');
             const pointersEl = document.getElementById('peek-stack-pointers');
             bucketEl.innerHTML = '';
             pointersEl.innerHTML = '';
 
             const topIdx = peekStack.length - 1;
-
+// Render each slot from 0 to peekCapacity-1 (bucket has flex-direction: column-reverse, so slot 0 is rendered at the bottom)
             for (let i = 0; i < peekCapacity; i++) {
                 const slotDiv = document.createElement('div');
                 const isOccupied = i < peekStack.length;
                 const isTop = (i === topIdx);
 
-                if (isOccupied) {
+                if (isOccupied) {// if the slot is occupied, display the value
                     const val = peekStack[i];
                     if (isTop && isPeeking) {
                         // Highlight in yellow when peek is executed
@@ -1643,12 +1645,12 @@ class LinkedListStack:
                         slotDiv.setAttribute('style', 'border: 2px solid white; background-color: #58b7ff; color: #000000; font-weight: bold; height: 42px; margin: 3px 0; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 6px;');
                     }
                     slotDiv.textContent = val;
-                } else {
+                } else {// if the slot is empty, display an empty placeholder
                     slotDiv.setAttribute('style', 'border: 2px dashed #444; background-color: #1a1a24; color: #666; height: 42px; margin: 3px 0; display: flex; align-items: center; justify-content: center; font-size: 12px; border-radius: 6px;');
                     slotDiv.textContent = "[ Empty " + i + " ]";
                 }
                 bucketEl.appendChild(slotDiv);
-
+                // Pointer row next to slot
                 const ptrRow = document.createElement('div');
                 ptrRow.className = 'pointer-row';
                 ptrRow.style.height = '42px';
@@ -1663,13 +1665,13 @@ class LinkedListStack:
             }
         }
 
-        function peekExecute() {
+        function peekExecute() {//execute the peek operation
             if (peekStack.length === 0) {
                 document.getElementById('peek-alert-box').innerHTML = '<span class="text-danger fw-bold"><i class="fa fa-exclamation-triangle"></i> Stack Underflow! Cannot peek an empty stack (top = -1).</span>';
                 document.getElementById('peek-comp-returned').textContent = "ERROR: Underflow";
                 return;
             }
-
+            // Store current state before peek
             const beforeSize = peekStack.length;
             const beforeTop = beforeSize - 1;
             const peekVal = peekStack[beforeTop];
@@ -1695,7 +1697,7 @@ class LinkedListStack:
                 'Unlike <code>pop()</code>, no memory or elements are removed.';
         }
 
-        function peekPush() {
+        function peekPush() {//push a new value onto the peek stack
             const val = document.getElementById('peek-input-val').value.trim();
             if (!val) return;
             if (peekStack.length >= peekCapacity) {
@@ -1707,12 +1709,12 @@ class LinkedListStack:
             document.getElementById('peek-alert-box').textContent = "Pushed " + val + ". Click PEEK to inspect top element.";
         }
 
-        function peekPop() {
+        function peekPop() {//pop the top element from the peek stack
             if (peekStack.length === 0) {
                 alert("Stack is already empty!");
                 return;
             }
-            const popped = peekStack.pop();
+            const popped = peekStack.pop();//remove the top element from the stack
             peekRender(false);
             document.getElementById('peek-alert-box').textContent = "Popped " + popped + ". Click PEEK to inspect top element.";
         }
@@ -1724,13 +1726,13 @@ class LinkedListStack:
             document.getElementById('peek-comp-returned').textContent = "-";
         }
 
-        // ====================================================
+        
         // 3. IS EMPTY SECTION LOGIC
-        // ====================================================
+       
         let ieStack = [10, 20];
         let ieCapacity = 4;
 
-        function ieRender() {
+        function ieRender() {//render the is-empty stack visualization
             const bucketEl = document.getElementById('ie-stack-bucket');
             const pointersEl = document.getElementById('ie-stack-pointers');
             bucketEl.innerHTML = '';
@@ -1738,7 +1740,7 @@ class LinkedListStack:
 
             const topIdx = ieStack.length - 1;
 
-            for (let i = 0; i < ieCapacity; i++) {
+            for (let i = 0; i < ieCapacity; i++) {//loop through each slot in the stack capacity
                 const slotDiv = document.createElement('div');
                 const isOccupied = i < ieStack.length;
                 const isTop = (i === topIdx);
@@ -1752,7 +1754,7 @@ class LinkedListStack:
                 }
                 bucketEl.appendChild(slotDiv);
 
-                const ptrRow = document.createElement('div');
+                const ptrRow = document.createElement('div');//create a new div for the pointer row
                 ptrRow.className = 'pointer-row';
                 ptrRow.style.height = '45px';
                 let txt = '<span class="text-muted">[' + i + ']</span>';
@@ -1762,7 +1764,7 @@ class LinkedListStack:
             }
         }
 
-        function ieCheck() {
+        function ieCheck() {//check if the stack is empty and update the UI accordingly
             const badge = document.getElementById('ie-result-badge');
             const explanation = document.getElementById('ie-explanation');
             const isEmpty = (ieStack.length === 0);
@@ -1786,7 +1788,7 @@ class LinkedListStack:
             }
         }
 
-        function iePush() {
+        function iePush() {//push a new value onto the is-empty stack
             const val = document.getElementById('ie-input-val').value.trim();
             if (!val) return;
             if (ieStack.length >= ieCapacity) {
@@ -1798,7 +1800,7 @@ class LinkedListStack:
             ieCheck();
         }
 
-        function iePop() {
+        function iePop() {//   pop the top value from the is-empty stack
             if (ieStack.length === 0) {
                 alert("Stack is already empty!");
                 return;
@@ -1814,13 +1816,13 @@ class LinkedListStack:
             ieCheck();
         }
 
-        // ====================================================
+        
         // 4. IS FULL SECTION LOGIC
-        // ====================================================
+        
         let ifStack = [10, 20, 30, 40];
         let ifCapacity = 4;
 
-        function ifRender() {
+        function ifRender() {//render the is-full stack visualization
             ifCapacity = parseInt(document.getElementById('if-capacity').value) || 4;
             const bucketEl = document.getElementById('if-stack-bucket');
             const pointersEl = document.getElementById('if-stack-pointers');
@@ -1830,21 +1832,21 @@ class LinkedListStack:
             const topIdx = ifStack.length - 1;
             const size = ifStack.length;
 
-            for (let i = 0; i < ifCapacity; i++) {
+            for (let i = 0; i < ifCapacity; i++) {//loop through each slot in the stack capacity
                 const slotDiv = document.createElement('div');
                 const isOccupied = i < size;
                 const isTop = (i === topIdx);
 
-                if (isOccupied) {
+                if (isOccupied) {// if the slot is occupied, display the value
                     slotDiv.setAttribute('style', 'border: 2px solid white; background-color: #58b7ff; color: #000000; font-weight: bold; height: 45px; margin: 3px 0; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 6px;');
                     slotDiv.textContent = ifStack[i];
-                } else {
+                } else {// if the slot is empty, display an empty placeholder
                     slotDiv.setAttribute('style', 'border: 2px dashed #444; background-color: #1a1a24; color: #666; height: 45px; margin: 3px 0; display: flex; align-items: center; justify-content: center; font-size: 12px; border-radius: 6px;');
                     slotDiv.textContent = "[ Available " + i + " ]";
                 }
                 bucketEl.appendChild(slotDiv);
 
-                const ptrRow = document.createElement('div');
+                const ptrRow = document.createElement('div');//create a new div for the pointer row
                 ptrRow.className = 'pointer-row';
                 ptrRow.style.height = '45px';
                 let txt = '<span class="text-muted">[' + i + ']</span>';
@@ -1861,14 +1863,14 @@ class LinkedListStack:
             document.getElementById('if-usage-text').textContent = size + " / " + ifCapacity + " Slots (" + percent + "%)";
         }
 
-        function ifCheck() {
+        function ifCheck() {//check if the stack is full and update the UI accordingly
             ifRender();
             const badge = document.getElementById('if-result-badge');
             const explanation = document.getElementById('if-explanation');
             const isFull = (ifStack.length >= ifCapacity);
             const available = Math.max(0, ifCapacity - ifStack.length);
 
-            if (isFull) {
+            if (isFull) {// if the stack is full, update the badge and explanation accordingly
                 badge.className = "badge bg-danger fs-1 px-4 py-2";
                 badge.textContent = "TRUE (Stack is FULL)";
                 explanation.innerHTML = 
@@ -1877,7 +1879,7 @@ class LinkedListStack:
                     'Size: <code>' + ifStack.length + '</code> | Capacity: <code>' + ifCapacity + '</code>.<br>' +
                     'Available slots: <strong>0</strong>.<br>' +
                     '<span class="text-warning">Warning: Calling <code>push()</code> now will cause a STACK OVERFLOW!</span>';
-            } else {
+            } else {// if the stack is not full, update the badge and explanation accordingly
                 badge.className = "badge bg-success fs-1 px-4 py-2";
                 badge.textContent = "FALSE (Not Full)";
                 explanation.innerHTML = 
@@ -1889,7 +1891,7 @@ class LinkedListStack:
             }
         }
 
-        function ifPush() {
+        function ifPush() {//push a new value onto the is-full stack
             ifCapacity = parseInt(document.getElementById('if-capacity').value) || 4;
             const val = document.getElementById('if-input-val').value.trim();
             if (!val) return;
@@ -1901,7 +1903,7 @@ class LinkedListStack:
             ifCheck();
         }
 
-        function ifPop() {
+        function ifPop() {//pop the top value from the is-full stack
             if (ifStack.length === 0) {
                 alert("Stack is already empty!");
                 return;
@@ -1910,7 +1912,7 @@ class LinkedListStack:
             ifCheck();
         }
 
-        function ifFill() {
+        function ifFill() {//fill the stack to its capacity with sample values
             ifCapacity = parseInt(document.getElementById('if-capacity').value) || 4;
             ifStack = [];
             for (let i = 1; i <= ifCapacity; i++) {
@@ -1924,21 +1926,21 @@ class LinkedListStack:
             ifCheck();
         }
 
-        // ====================================================
+        
         // 5. POSTFIX EVALUATION SECTION (NO EVAL())
-        // ====================================================
-        let postfixSteps = [];
-        let postfixStepIdx = 0;
-        let postfixTokens = [];
-        let postfixPlayInterval = null;
+        
+        let postfixSteps = [];// array of step objects for postfix evaluation
+        let postfixStepIdx = 0;// current index in the postfixSteps array
+        let postfixTokens = [];// array of tokens from the postfix expression
+        let postfixPlayInterval = null;// interval ID for autoplaying steps
 
-        function tokenizeExpr(str) {
+        function tokenizeExpr(str) {// tokenize the postfix expression into an array of tokens
             str = str.trim();
             if (!str) return [];
             return str.split(/\s+/).filter(t => t.length > 0);
         }
 
-        function isOperator(tok) {
+        function isOperator(tok) {// check if the token is a valid operator
             return ['+', '-', '*', '/', '%', '^'].includes(tok);
         }
 
@@ -1957,12 +1959,12 @@ class LinkedListStack:
             }
         }
 
-        function postfixSetPreset(expr) {
+        function postfixSetPreset(expr) {// set a preset postfix expression and start evaluation
             document.getElementById('postfix-expr').value = expr;
             postfixStart();
         }
 
-        function postfixStart() {
+        function postfixStart() {// start the postfix evaluation process
             postfixStopPlay();
             const expr = document.getElementById('postfix-expr').value;
             postfixTokens = tokenizeExpr(expr);
@@ -1991,7 +1993,7 @@ class LinkedListStack:
                 if (!isOperator(tok)) {
                     // Operand
                     const num = Number(tok);
-                    if (isNaN(num)) {
+                    if (isNaN(num)) {// Invalid token
                         postfixSteps.push({
                             tokenIdx: i,
                             token: tok,
@@ -2009,7 +2011,7 @@ class LinkedListStack:
                         desc: "Token '" + tok + "' is an operand. Push " + num + " onto stack.",
                         isComplete: false
                     });
-                } else {
+                } else {// Operator
                     // Operator: In Postfix, right operand b popped first, then left operand a
                     if (stack.length < 2) {
                         postfixSteps.push({
@@ -2026,7 +2028,7 @@ class LinkedListStack:
                     const a = stack.pop(); // left operand
                     const res = executeOperator(tok, a, b);
 
-                    if (isNaN(res)) {
+                    if (isNaN(res)) {// Handle division by zero or invalid operation
                         postfixSteps.push({
                             tokenIdx: i,
                             token: tok,
@@ -2049,8 +2051,8 @@ class LinkedListStack:
                 }
             }
 
-            if (!postfixSteps[postfixSteps.length - 1].isError) {
-                if (stack.length === 1) {
+            if (!postfixSteps[postfixSteps.length - 1].isError) {// If no error occurred, check final stack state
+                if (stack.length === 1) {// Valid final result
                     postfixSteps.push({
                         tokenIdx: postfixTokens.length,
                         token: null,
@@ -2059,7 +2061,7 @@ class LinkedListStack:
                         isComplete: true,
                         finalResult: stack[0]
                     });
-                } else {
+                } else {// Invalid final state: stack should have exactly one element
                     postfixSteps.push({
                         tokenIdx: postfixTokens.length,
                         token: null,
@@ -2075,7 +2077,7 @@ class LinkedListStack:
             postfixRenderStep();
         }
 
-        function postfixRenderStep() {
+        function postfixRenderStep() {// render the current step of postfix evaluation
             if (postfixSteps.length === 0) return;
             const step = postfixSteps[postfixStepIdx];
 
@@ -2101,7 +2103,7 @@ class LinkedListStack:
             ptrEl.innerHTML = '';
 
             const capacity = Math.max(5, step.stack.length + 1);
-            for (let i = 0; i < capacity; i++) {
+            for (let i = 0; i < capacity; i++) {// Render each slot in the stack bucket
                 const slot = document.createElement('div');
                 if (i < step.stack.length) {
                     slot.setAttribute('style', 'border: 2px solid white; background-color: #58b7ff; color: #000000; font-weight: bold; height: 42px; margin: 3px 0; display: flex; align-items: center; justify-content: center; font-size: 18px; border-radius: 6px;');
@@ -2137,14 +2139,14 @@ class LinkedListStack:
             }
         }
 
-        function postfixPrevStep() {
+        function postfixPrevStep() {// go to the previous step in the postfix evaluation
             if (postfixStepIdx > 0) {
                 postfixStepIdx--;
                 postfixRenderStep();
             }
         }
 
-        function postfixNextStep() {
+        function postfixNextStep() {// go to the next step in the postfix evaluation
             if (postfixStepIdx < postfixSteps.length - 1) {
                 postfixStepIdx++;
                 postfixRenderStep();
@@ -2153,7 +2155,7 @@ class LinkedListStack:
             }
         }
 
-        function postfixTogglePlay() {
+        function postfixTogglePlay() {// toggle autoplay of the postfix evaluation steps
             if (postfixPlayInterval) {
                 postfixStopPlay();
             } else {
@@ -2168,7 +2170,7 @@ class LinkedListStack:
             }
         }
 
-        function postfixStopPlay() {
+        function postfixStopPlay() {// stop the autoplay of postfix evaluation steps
             if (postfixPlayInterval) {
                 clearInterval(postfixPlayInterval);
                 postfixPlayInterval = null;
@@ -2183,9 +2185,9 @@ class LinkedListStack:
             postfixStart();
         }
 
-        // ====================================================
+        
         // 6. PREFIX EVALUATION SECTION (NO EVAL())
-        // ====================================================
+        
         let prefixSteps = [];
         let prefixStepIdx = 0;
         let prefixTokens = [];
@@ -2196,7 +2198,7 @@ class LinkedListStack:
             prefixStart();
         }
 
-        function prefixStart() {
+        function prefixStart() {// start the prefix evaluation process
             prefixStopPlay();
             const expr = document.getElementById('prefix-expr').value;
             prefixTokens = tokenizeExpr(expr);
@@ -2286,7 +2288,7 @@ class LinkedListStack:
                 }
             }
 
-            if (!prefixSteps[prefixSteps.length - 1].isError) {
+            if (!prefixSteps[prefixSteps.length - 1].isError) {// If no error occurred, check final stack state
                 if (stack.length === 1) {
                     prefixSteps.push({
                         tokenIdx: -2,
@@ -2296,7 +2298,7 @@ class LinkedListStack:
                         isComplete: true,
                         finalResult: stack[0]
                     });
-                } else {
+                } else {// Invalid final state: stack should have exactly one element
                     prefixSteps.push({
                         tokenIdx: -2,
                         token: null,
@@ -2312,7 +2314,7 @@ class LinkedListStack:
             prefixRenderStep();
         }
 
-        function prefixRenderStep() {
+        function prefixRenderStep() {// render the current step of prefix evaluation
             if (prefixSteps.length === 0) return;
             const step = prefixSteps[prefixStepIdx];
 
@@ -2374,14 +2376,14 @@ class LinkedListStack:
             }
         }
 
-        function prefixPrevStep() {
+        function prefixPrevStep() {// go to the previous step in the prefix evaluation
             if (prefixStepIdx > 0) {
                 prefixStepIdx--;
                 prefixRenderStep();
             }
         }
 
-        function prefixNextStep() {
+        function prefixNextStep() {// go to the next step in the prefix evaluation
             if (prefixStepIdx < prefixSteps.length - 1) {
                 prefixStepIdx++;
                 prefixRenderStep();
@@ -2390,7 +2392,7 @@ class LinkedListStack:
             }
         }
 
-        function prefixTogglePlay() {
+        function prefixTogglePlay() {// toggle autoplay of the prefix evaluation steps
             if (prefixPlayInterval) {
                 prefixStopPlay();
             } else {
@@ -2405,7 +2407,7 @@ class LinkedListStack:
             }
         }
 
-        function prefixStopPlay() {
+        function prefixStopPlay() {// stop the autoplay of prefix evaluation steps
             if (prefixPlayInterval) {
                 clearInterval(prefixPlayInterval);
                 prefixPlayInterval = null;
@@ -2414,15 +2416,15 @@ class LinkedListStack:
             if (btn) btn.innerHTML = '<i class="fa fa-play"></i> Play';
         }
 
-        function prefixReset() {
+        function prefixReset() {// reset the prefix evaluation process
             prefixStopPlay();
             document.getElementById('prefix-expr').value = "+ 5 * 2 3";
             prefixStart();
         }
 
-        // ====================================================
+        
         // 7. ARRAY IMPLEMENTATION LOGIC
-        // ====================================================
+       
         const ARR_MAX = 6;
         let arrData = new Array(ARR_MAX).fill(null);
         let arrTop = -1;
@@ -2472,11 +2474,11 @@ class LinkedListStack:
             document.getElementById('arr-top-label').textContent = "top = " + arrTop + (arrTop >= 0 ? " (arr[" + arrTop + "] = " + arrData[arrTop] + ")" : " (Empty)");
         }
 
-        function arrPush() {
+        function arrPush() {// push a new value onto the array-based stack
             const val = document.getElementById('arr-val-input').value.trim();
             if (!val) return;
 
-            if (arrTop >= ARR_MAX - 1) {
+            if (arrTop >= ARR_MAX - 1) {// Check for stack overflow
                 arrShowAlert("Stack Overflow! top (" + arrTop + ") >= MAX - 1 (5).");
                 document.getElementById('arr-action-desc').innerHTML = 
                     '<strong class="text-danger">Stack Overflow:</strong> Condition <code>top >= MAX - 1</code> is TRUE. Cannot push <code>' + val + '</code>.';
@@ -2484,7 +2486,7 @@ class LinkedListStack:
                 return;
             }
 
-            arrHideAlert();
+            arrHideAlert();// Clear any previous alert
             arrTop++;
             arrData[arrTop] = val;
             arrRender();
@@ -2493,7 +2495,7 @@ class LinkedListStack:
             arrHighlightCode('arr-c-8');
         }
 
-        function arrPop() {
+        function arrPop() {// pop the top value from the array-based stack
             if (arrTop < 0) {
                 arrShowAlert("Stack Underflow! top (" + arrTop + ") < 0.");
                 document.getElementById('arr-action-desc').innerHTML = 
@@ -2502,41 +2504,41 @@ class LinkedListStack:
                 return;
             }
 
-            arrHideAlert();
+            arrHideAlert();// Clear any previous alert
             const popped = arrData[arrTop];
             arrData[arrTop] = null;
             arrTop--;
-            arrRender();
+            arrRender();// Update the visualization
             document.getElementById('arr-action-desc').innerHTML = 
                 '<strong>pop():</strong> Retrieved value <code>' + popped + '</code>, decremented <code>top</code> to <strong>' + arrTop + '</strong>.';
             arrHighlightCode('arr-c-14');
         }
 
-        function arrPeek() {
+        function arrPeek() {// peek at the top value of the array-based stack without removing it
             if (arrTop < 0) {
                 arrShowAlert("Stack Underflow on peek! Stack is empty.");
                 return;
             }
-            arrHideAlert();
+            arrHideAlert();// Clear any previous alert
             const val = arrData[arrTop];
             document.getElementById('arr-action-desc').innerHTML = 
                 '<strong>peek():</strong> Read <code>arr[' + arrTop + '] = ' + val + '</code>. Variable <code>top</code> remains ' + arrTop + '.';
             arrHighlightCode('arr-c-19');
         }
 
-        function arrIsEmpty() {
+        function arrIsEmpty() {// check if the array-based stack is empty
             const empty = (arrTop === -1);
             document.getElementById('arr-action-desc').innerHTML = 
                 '<strong>isEmpty():</strong> <code>top == -1</code> evaluates to <strong>' + empty + '</strong> (top is ' + arrTop + ').';
         }
 
-        function arrIsFull() {
+        function arrIsFull() {// check if the array-based stack is full
             const full = (arrTop === ARR_MAX - 1);
             document.getElementById('arr-action-desc').innerHTML = 
                 '<strong>isFull():</strong> <code>top >= MAX - 1</code> evaluates to <strong>' + full + '</strong> (top is ' + arrTop + ', MAX is ' + ARR_MAX + ').';
         }
 
-        function arrReset() {
+        function arrReset() {// reset the array-based stack to its initial state
             arrData = new Array(ARR_MAX).fill(null);
             arrTop = -1;
             arrHideAlert();
@@ -2544,17 +2546,17 @@ class LinkedListStack:
             document.getElementById('arr-action-desc').textContent = "Reset stack. Initialized top = -1.";
         }
 
-        function arrShowAlert(msg) {
+        function arrShowAlert(msg) {// display an alert message for the array-based stack
             const el = document.getElementById('arr-alert');
             el.textContent = msg;
             el.style.display = 'block';
         }
 
-        function arrHideAlert() {
+        function arrHideAlert() {// hide the alert message for the array-based stack
             document.getElementById('arr-alert').style.display = 'none';
         }
 
-        function arrSwitchTab(lang, btn) {
+        function arrSwitchTab(lang, btn) {// switch the displayed code snippet based on the selected programming language
             ['cpp', 'java', 'python'].forEach(l => {
                 document.getElementById('arr-code-' + l).style.display = (l === lang) ? 'block' : 'none';
             });
@@ -2563,15 +2565,15 @@ class LinkedListStack:
             btn.classList.add('active');
         }
 
-        function arrHighlightCode(lineId) {
+        function arrHighlightCode(lineId) {// highlight a specific line of code in the array implementation code snippet
             document.querySelectorAll('#arr-code-cpp .code-line').forEach(l => l.classList.remove('active'));
             const line = document.getElementById(lineId);
             if (line) line.classList.add('active');
         }
 
-        // ====================================================
+        
         // 8. LINKED LIST IMPLEMENTATION LOGIC
-        // ====================================================
+        
         let llHead = null;
 
         function llRender() {
@@ -2630,7 +2632,7 @@ class LinkedListStack:
             container.appendChild(wrapper);
         }
 
-        function llPush() {
+        function llPush() {// push a new value onto the linked list stack
             const val = document.getElementById('ll-val-input').value.trim();
             if (!val) return;
 
@@ -2647,7 +2649,7 @@ class LinkedListStack:
             llHighlightCode('ll-c-12');
         }
 
-        function llPop() {
+        function llPop() {// pop the top value from the linked list stack
             if (llHead === null) {
                 llShowAlert("Stack Underflow! Linked List is empty (TOP == NULL).");
                 document.getElementById('ll-pointer-steps').innerHTML = 
@@ -2669,7 +2671,7 @@ class LinkedListStack:
             llHighlightCode('ll-c-20');
         }
 
-        function llPeek() {
+        function llPeek() {// peek at the top value of the linked list stack without removing it
             if (llHead === null) {
                 llShowAlert("Stack Underflow! Cannot peek empty stack.");
                 return;
@@ -2679,20 +2681,20 @@ class LinkedListStack:
                 '<strong>peek():</strong> Inspected head node: <code>TOP.data = ' + llHead.data + '</code>. Pointers unchanged.';
         }
 
-        function llIsEmpty() {
+        function llIsEmpty() {// check if the linked list stack is empty
             const empty = (llHead === null);
             document.getElementById('ll-pointer-steps').innerHTML = 
                 '<strong>isEmpty():</strong> Condition <code>TOP == NULL</code> is <strong>' + empty + '</strong>.';
         }
 
-        function llReset() {
+        function llReset() {// reset the linked list stack to its initial state
             llHead = null;
             llHideAlert();
             llRender();
             document.getElementById('ll-pointer-steps').textContent = "Reset stack: TOP = NULL.";
         }
 
-        function llShowAlert(msg) {
+        function llShowAlert(msg) {// display an alert message for the linked list stack
             const el = document.getElementById('ll-alert');
             el.textContent = msg;
             el.style.display = 'block';
@@ -2702,7 +2704,7 @@ class LinkedListStack:
             document.getElementById('ll-alert').style.display = 'none';
         }
 
-        function llSwitchTab(lang, btn) {
+        function llSwitchTab(lang, btn) {// switch the displayed code snippet based on the selected programming language for linked list implementation
             ['cpp', 'java', 'python'].forEach(l => {
                 document.getElementById('ll-code-' + l).style.display = (l === lang) ? 'block' : 'none';
             });
@@ -2711,15 +2713,15 @@ class LinkedListStack:
             btn.classList.add('active');
         }
 
-        function llHighlightCode(lineId) {
+        function llHighlightCode(lineId) {// highlight a specific line of code in the linked list implementation code snippet
             document.querySelectorAll('#ll-code-cpp .code-line').forEach(l => l.classList.remove('active'));
             const line = document.getElementById(lineId);
             if (line) line.classList.add('active');
         }
 
-        // ----------------------------------------------------
+       
         // INITIAL PAGE LOAD SETUP
-        // ----------------------------------------------------
+        
         window.addEventListener('DOMContentLoaded', () => {
             ppInit();
             peekRender(false);
