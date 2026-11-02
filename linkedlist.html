@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linked List Visualizer - AlgoVis</title>
+
+  <!-- External CDNs matching AlgoVis Project -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Shared Unified Theme -->
+  <link rel="stylesheet" href="dsa_shared.css">
+
+  <style>
+    /* Exact style rules from existing project */
+    * { 
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif; 
+      box-sizing: border-box;
+    }
+    body { 
+      background-color: #000000; 
+      color: white; 
+      margin: 0; 
+      padding: 0; 
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .banner { 
+      background-color: #7d39a5; 
+      color: #ffffff; 
+      font-size: 50px; 
+      text-align: center; 
+      padding: 10px 0;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    .sub-banner {
+      background-color: #552573;
+      color: #ebd7ff;
+      text-align: center;
+      padding: 6px;
+      font-size: 15px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .navbar { 
+      overflow: hidden; 
+      text-align: center; 
+      background-color: rgb(2,2,2); 
+      border-bottom: 2px solid #3d1b58;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0;
+    }
+    .navbar a { 
+      float: left; 
+      color: #dddddd; 
+      text-align: center; 
+      text-decoration: none; 
+      padding: 10px 14px; 
+      font-size: 20px; 
+      cursor: pointer;
+      border-right: 1px solid #1a1a1a;
+      transition: all 0.2s ease;
+    }
+    .navbar a:hover { 
+      background-color: rgba(172,80,233,0.705); 
+      color: #ffffff;
+      text-decoration: none;
+    }
+    .navbar a.active { 
+      background-color: #937BEB; 
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    /* Container */
+    .app-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Cards & Panels */
+    .panel-card {
+      background: #0d0d0d;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+    }
+    .panel-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #58b7ff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 6px;
+    }
+
+    /* Buttons */
+    .btn-purple {
+      background-color: #7d39a5;
+      color: white;
+      border: 1px solid #937BEB;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-purple:hover, .btn-purple:focus {
+      background-color: #937BEB;
+      color: white;
+      box-shadow: 0 0 10px rgba(147, 123, 235, 0.5);
+    }
+    .btn-cyan {
+      background-color: #0b3d61;
+      color: #58b7ff;
+      border: 1px solid #58b7ff;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-cyan:hover, .btn-cyan:focus {
+      background-color: #58b7ff;
+      color: #000;
+      box-shadow: 0 0 10px rgba(88, 183, 255, 0.6);
+    }
+
+    /* Type Selector Pills */
+    .type-pill {
+      background-color: #1a1a1a;
+      color: #ccc;
+      border: 1px solid #333;
+      padding: 7px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: inline-block;
+      margin-right: 8px;
+      margin-bottom: 6px;
+    }
+    .type-pill:hover {
+      border-color: #58b7ff;
+      color: #58b7ff;
+    }
+    .type-pill.active {
+      background-color: #7d39a5;
+      color: white;
+      border-color: #937BEB;
+      box-shadow: 0 0 12px rgba(125, 57, 165, 0.6);
+    }
+
+    /* Form Controls */
+    .form-control, .form-select {
+      background-color: #141414;
+      border: 1px solid #333;
+      color: #fff;
+    }
+    .form-control:focus, .form-select:focus {
+      background-color: #1a1a1a;
+      border-color: #58b7ff;
+      color: #fff;
+      box-shadow: 0 0 8px rgba(88, 183, 255, 0.3);
+    }
+
+    /* jQuery UI Slider Styling */
+    #speed-slider .ui-slider-range { 
+      background: #7d39a5; 
+    }
+    .ui-slider {
+      background: #222;
+      border: 1px solid #444;
+      height: 8px;
+      border-radius: 4px;
+    }
+    .ui-slider .ui-slider-handle {
+      background: #58b7ff;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      height: 18px;
+      width: 18px;
+      top: -6px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Operations Tabs */
+    .op-tab-btn {
+      background-color: #161616;
+      border: 1px solid #2d2d2d;
+      color: #aaa;
+      padding: 10px 18px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 6px 6px 0 0;
+      margin-right: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .op-tab-btn:hover {
+      color: #fff;
+      background-color: #222;
+    }
+    .op-tab-btn.active {
+      background-color: #221230;
+      color: #58b7ff;
+      border-color: #7d39a5;
+      border-bottom: 2px solid #58b7ff;
+    }
+    .op-content-box {
+      background: #121212;
+      border: 1px solid #2d2d2d;
+      border-radius: 0 8px 8px 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    /* Step Explanation Panel */
+    .explanation-panel {
+      background: #090909;
+      border-left: 4px solid #58b7ff;
+      border-radius: 4px;
+      padding: 12px 18px;
+      margin-bottom: 18px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+    }
+    .explanation-step-num {
+      color: #937BEB;
+      font-weight: bold;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .explanation-desc {
+      font-size: 18px;
+      color: #ffffff;
+      margin: 4px 0 8px 0;
+    }
+    .explanation-code {
+      font-family: 'Consolas', 'Courier New', monospace;
+      background: #151515;
+      color: #58b7ff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      display: inline-block;
+      font-size: 15px;
+      border: 1px solid #2a2a2a;
+    }
+
+    /* Visualizer Canvas Area */
+    .vis-wrapper {
+      background: #050505;
+      border: 2px solid #242424;
+      border-radius: 8px;
+      padding: 24px 20px 45px 20px;
+      min-height: 380px;
+      position: relative;
+      overflow-x: auto;
+      overflow-y: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+    }
+
+    /* Staging / New Node Area */
+    .staging-area {
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      padding: 8px;
+      border: 1px dashed #333;
+      border-radius: 6px;
+      background: rgba(20, 20, 20, 0.4);
+    }
+    .staging-label {
+      font-size: 13px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-right: 14px;
+    }
+
+    /* Nodes Row */
+    .nodes-row {
+      display: inline-flex;
+      align-items: center;
+      min-width: max-content;
+      padding: 20px 10px 45px 10px;
+      position: relative;
+    }
+
+    /* Node Item Wrapper */
+    .node-item-wrapper {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .node-badges {
+      height: 26px;
+      margin-bottom: 6px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+    }
+    .pointer-tag {
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tag-head {
+      background-color: #7d39a5;
+      color: #fff;
+      box-shadow: 0 0 6px rgba(125, 57, 165, 0.8);
+    }
+    .tag-tail {
+      background-color: #d63384;
+      color: #fff;
+      box-shadow: 0 0 6px rgba(214, 51, 132, 0.8);
+    }
+    .tag-curr {
+      background-color: #ffc107;
+      color: #000;
+      box-shadow: 0 0 8px rgba(255, 193, 7, 0.9);
+      animation: pulse-glow 1s infinite alternate;
+    }
+    .tag-match {
+      background-color: #28a745;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(40, 167, 69, 0.9);
+    }
+
+    @keyframes pulse-glow {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    /* Node Box */
+    .node-box {
+      border: 2px solid #58b7ff;
+      padding: 9px 14px;
+      background: #111111;
+      color: white;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .node-box.visiting {
+      border-color: #ffc107 !important;
+      background: #272207 !important;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(255, 193, 7, 0.4);
+    }
+    .node-box.matched {
+      border-color: #28a745 !important;
+      background: #082911 !important;
+      transform: scale(1.08);
+      box-shadow: 0 8px 20px rgba(40, 167, 69, 0.6);
+    }
+    .node-box.comparing {
+      border-color: #ff9800 !important;
+      background: #2b1c05 !important;
+      transform: translateY(-4px);
+    }
+    .node-box.new-node {
+      border-color: #58b7ff !important;
+      background: #0d283d !important;
+      border-style: dashed;
+      animation: pulse-glow 1.2s infinite alternate;
+    }
+    .node-box.deleting {
+      border-color: #dc3545 !important;
+      background: #33080b !important;
+      opacity: 0.7;
+      text-decoration: line-through;
+    }
+
+    .node-val {
+      font-weight: bold;
+      color: #58b7ff;
+      font-size: 20px;
+      min-width: 24px;
+      text-align: center;
+    }
+    .node-divider {
+      color: #444;
+      font-weight: lighter;
+      user-select: none;
+    }
+    .node-ptr {
+      font-size: 14px;
+      color: #aaa;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .node-ptr.active-ptr {
+      color: #58b7ff;
+      font-weight: bold;
+    }
+
+    /* Node Index Label (0-based) */
+    .node-index-label {
+      font-size: 12px;
+      color: #777;
+      margin-top: 6px;
+      font-family: monospace;
+    }
+
+    /* Connector Arrows */
+    .arrow-connector {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #58b7ff;
+      font-size: 26px;
+      margin: 0 10px;
+      user-select: none;
+      transition: all 0.3s;
+    }
+    .arrow-connector.highlighted {
+      color: #ffc107;
+      transform: scale(1.2);
+    }
+    .arrow-connector.doubly {
+      font-size: 22px;
+      letter-spacing: -2px;
+    }
+
+    /* NULL Terminator Box */
+    .null-box {
+      border: 1px dashed #555;
+      padding: 7px 12px;
+      background: #0a0a0a;
+      color: #888;
+      border-radius: 4px;
+      font-size: 15px;
+      font-family: monospace;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* Head Lead Indicator */
+    .head-lead {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #937BEB;
+    }
+    .head-lead span {
+      background: #7d39a5;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-right: 6px;
+    }
+
+    /* Circular SVG Overlay */
+    .circular-svg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 5;
+    }
+
+    /* Legend */
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #bbb;
+      margin-right: 16px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    @media (max-width: 992px) {
+      .navbar a {
+        font-size: 16px;
+        padding: 8px 10px;
+      }
+      .banner {
+        font-size: 38px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Purple Header Banner -->
+  <div class="banner">AlgoVis</div>
+  <div class="sub-banner">Ace Data Structures &middot; Linked List Visualizer</div>
+
+  <!-- Navbar (matches existing project structure) -->
+  <div class="navbar" id="appNavbar">
+    <a href="index.html"><i class="fa fa-home"></i> Home</a>
+    <a href="javascript:void(0)" class="nav-link-btn active" id="nav-singly" onclick="selectListType('singly')">Singly Linked List</a>
+    <a href="javascript:void(0)" class="nav-link-btn" id="nav-doubly" onclick="selectListType('doubly')">Doubly Linked List</a>
+    <a href="javascript:void(0)" class="nav-link-btn" id="nav-circular" onclick="selectListType('circular')">Circular Linked List</a>
+    <a href="javascript:void(0)" class="nav-link-btn" id="nav-traversal" onclick="selectOperationTab('traversal')">Traversal</a>
+    <a href="javascript:void(0)" class="nav-link-btn" id="nav-insertion" onclick="selectOperationTab('insertion')">Insertion</a>
+    <a href="javascript:void(0)" class="nav-link-btn" id="nav-deletion" onclick="selectOperationTab('deletion')">Deletion</a>
+    <a href="javascript:void(0)" class="nav-link-btn" id="nav-searching" onclick="selectOperationTab('searching')">Searching</a>
+  </div>
+
+  <div class="app-container">
+
+    <!-- Top Config & List Builder Panel -->
+    <div class="panel-card">
+      <div class="row align-items-center g-3">
+        <!-- List Type Selector at top -->
+        <div class="col-lg-5 col-md-12">
+          <label class="form-label text-muted mb-1" style="font-size:13px; font-weight:bold; text-transform:uppercase;">Select Linked List Type:</label>
+          <div>
+            <span class="type-pill active" id="pill-singly" onclick="selectListType('singly')">
+              <i class="fa fa-arrow-right"></i> Singly
+            </span>
+            <span class="type-pill" id="pill-doubly" onclick="selectListType('doubly')">
+              <i class="fa fa-arrows-h"></i> Doubly
+            </span>
+            <span class="type-pill" id="pill-circular" onclick="selectListType('circular')">
+              <i class="fa fa-repeat"></i> Circular
+            </span>
+          </div>
+        </div>
+
+        <!-- Initial List Input & Build Button -->
+        <div class="col-lg-7 col-md-12">
+          <label class="form-label text-muted mb-1" style="font-size:13px; font-weight:bold; text-transform:uppercase;">Initial List (Comma-Separated Values):</label>
+          <div class="input-group">
+            <input type="text" id="initialValuesInput" class="form-control" value="10, 20, 30" placeholder="e.g. 10, 20, 30, 40">
+            <button class="btn btn-purple" type="button" onclick="handleBuildList()">
+              <i class="fa fa-wrench"></i> Build List
+            </button>
+            <button class="btn btn-outline-secondary" type="button" onclick="handleRandomizeList()" title="Randomize List">
+              <i class="fa fa-random"></i> Random
+            </button>
+            <button class="btn btn-outline-danger" type="button" onclick="handleClearList()" title="Make Empty List">
+              <i class="fa fa-trash"></i> Empty
+            </button>
+          </div>
+          <small class="text-muted">Enter comma-separated values (0-based indexing is used throughout).</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Operations Controls Panel -->
+    <div class="panel-card" style="padding-bottom: 8px;">
+      <!-- Operations Tabs -->
+      <div class="d-flex flex-wrap mb-2" id="operationTabs">
+        <button class="op-tab-btn active" id="tab-btn-traversal" onclick="selectOperationTab('traversal')">
+          <i class="fa fa-binoculars"></i> Traversal
+        </button>
+        <button class="op-tab-btn" id="tab-btn-insertion" onclick="selectOperationTab('insertion')">
+          <i class="fa fa-plus-circle"></i> Insertion
+        </button>
+        <button class="op-tab-btn" id="tab-btn-deletion" onclick="selectOperationTab('deletion')">
+          <i class="fa fa-minus-circle"></i> Deletion
+        </button>
+        <button class="op-tab-btn" id="tab-btn-searching" onclick="selectOperationTab('searching')">
+          <i class="fa fa-search"></i> Searching
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="op-content-box">
+        <!-- 1. TRAVERSAL TAB -->
+        <div id="tab-content-traversal">
+          <div class="row align-items-center g-3">
+            <div class="col-md-6">
+              <span class="text-white fw-bold">Traverse Linked List:</span>
+              <p class="text-muted mb-0" style="font-size: 14px;">
+                Highlights each node one by one from HEAD. Circular stops upon cycling back to HEAD. Doubly supports reverse traversal.
+              </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <button class="btn btn-purple me-2" onclick="handleStartTraversal('forward')">
+                <i class="fa fa-play"></i> Start Traversal
+              </button>
+              <button class="btn btn-cyan" id="btn-reverse-traversal" onclick="handleStartTraversal('reverse')" style="display:none;">
+                <i class="fa fa-backward"></i> Reverse Traversal (Doubly)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. INSERTION TAB -->
+        <div id="tab-content-insertion" style="display: none;">
+          <div class="row align-items-center g-3">
+            <div class="col-md-3">
+              <label class="form-label text-muted mb-1" style="font-size:12px;">NEW NODE VALUE:</label>
+              <input type="text" id="insertValueInput" class="form-control" value="25" placeholder="Value (e.g. 25)">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted mb-1" style="font-size:12px;">POSITION (0-based):</label>
+              <input type="number" id="insertPosInput" class="form-control" value="1" min="0" placeholder="Index">
+            </div>
+            <div class="col-md-6 text-md-end d-flex flex-wrap gap-2 justify-content-md-end align-items-end mt-4">
+              <button class="btn btn-cyan btn-sm" onclick="handleInsert('beginning')">
+                <i class="fa fa-step-backward"></i> Insert at Beginning
+              </button>
+              <button class="btn btn-cyan btn-sm" onclick="handleInsert('end')">
+                <i class="fa fa-step-forward"></i> Insert at End
+              </button>
+              <button class="btn btn-purple btn-sm" onclick="handleInsert('position')">
+                <i class="fa fa-map-marker"></i> Insert at Position
+              </button>
+            </div>
+          </div>
+          <div class="mt-2 text-muted" style="font-size:12px;">
+            <i class="fa fa-info-circle text-info"></i> Position 0 inserts at Beginning. Valid 0-based positions: 0 to <span class="current-size-display">3</span>.
+          </div>
+        </div>
+
+        <!-- 3. DELETION TAB -->
+        <div id="tab-content-deletion" style="display: none;">
+          <div class="row align-items-center g-3">
+            <div class="col-md-4">
+              <label class="form-label text-muted mb-1" style="font-size:12px;">POSITION TO DELETE (0-based):</label>
+              <input type="number" id="deletePosInput" class="form-control" value="0" min="0" placeholder="0-based Index">
+            </div>
+            <div class="col-md-8 text-md-end d-flex flex-wrap gap-2 justify-content-md-end align-items-end mt-4">
+              <button class="btn btn-outline-danger btn-sm" onclick="handleDelete('beginning')">
+                <i class="fa fa-trash"></i> Delete from Beginning
+              </button>
+              <button class="btn btn-outline-danger btn-sm" onclick="handleDelete('end')">
+                <i class="fa fa-trash"></i> Delete from End
+              </button>
+              <button class="btn btn-outline-danger btn-sm" onclick="handleDelete('position')">
+                <i class="fa fa-trash-o"></i> Delete at Position
+              </button>
+            </div>
+          </div>
+          <div class="mt-2 text-muted" style="font-size:12px;">
+            <i class="fa fa-info-circle text-warning"></i> Valid deletion indices: 0 to <span class="max-delete-index-display">2</span> (0-based).
+          </div>
+        </div>
+
+        <!-- 4. SEARCHING TAB -->
+        <div id="tab-content-searching" style="display: none;">
+          <div class="row align-items-center g-3">
+            <div class="col-md-6">
+              <label class="form-label text-muted mb-1" style="font-size:12px;">TARGET VALUE TO SEARCH:</label>
+              <div class="input-group">
+                <input type="text" id="searchValueInput" class="form-control" value="20" placeholder="Target Value (e.g. 20)">
+                <button class="btn btn-purple" onclick="handleSearch()">
+                  <i class="fa fa-search"></i> Search
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <p class="text-muted mb-0" style="font-size:13px;">
+                Visits nodes one-by-one comparing target with node value. Circular lists stop safely after 1 full cycle.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Playback Controls Row -->
+      <div class="d-flex flex-wrap align-items-center justify-content-between g-2 pt-2 border-top border-secondary">
+        <!-- Step navigation buttons -->
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <button class="btn btn-outline-light btn-sm" id="btn-prev-step" onclick="prevStep()" title="Previous Step">
+            <i class="fa fa-step-backward"></i> Previous Step
+          </button>
+          <button class="btn btn-purple btn-sm" id="btn-play-pause" onclick="togglePlayPause()" title="Play / Pause">
+            <i class="fa fa-play" id="play-pause-icon"></i> <span id="play-pause-text">Play</span>
+          </button>
+          <button class="btn btn-outline-light btn-sm" id="btn-next-step" onclick="nextStep()" title="Next Step">
+            Next Step <i class="fa fa-step-forward"></i>
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" onclick="resetPlayback()" title="Reset to Start of Operation">
+            <i class="fa fa-undo"></i> Reset
+          </button>
+          <span class="badge bg-dark border border-secondary ms-2" id="step-counter" style="font-size: 14px; padding: 6px 10px;">
+            Step: 0 / 0
+          </span>
+        </div>
+
+        <!-- Speed control slider -->
+        <div class="d-flex align-items-center gap-2 mb-2" style="min-width: 260px;">
+          <span class="text-muted" style="font-size: 13px; font-weight: bold;"><i class="fa fa-tachometer"></i> SPEED:</span>
+          <div id="speed-slider" style="flex: 1; margin: 0 10px;"></div>
+          <span id="speed-value" class="text-info" style="font-size: 13px; font-family: monospace; width: 45px;">800ms</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Explanation & Code Display Panel -->
+    <div class="explanation-panel">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="explanation-step-num" id="explanation-step-title">INITIAL STATE</span>
+        <span class="badge bg-purple" id="list-status-badge">SINGLY LINKED LIST</span>
+      </div>
+      <div class="explanation-desc" id="explanation-desc-text">
+        Ready. Select an operation (Traversal, Insertion, Deletion, or Searching) to begin visual simulation.
+      </div>
+      <div id="code-snippet-container">
+        <span class="explanation-code" id="explanation-code-text">// Pointer operations will be displayed step-by-step</span>
+      </div>
+    </div>
+
+    <!-- Visualizer Canvas Panel -->
+    <div class="panel-card" style="padding: 10px;">
+      <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+        <div class="panel-title mb-0" style="border:none; padding:0;">
+          <i class="fa fa-sitemap"></i> Node Pointer Diagram
+        </div>
+        <!-- Legend -->
+        <div class="d-none d-md-flex align-items-center">
+          <div class="legend-item"><span class="legend-dot" style="background:#7d39a5;"></span> HEAD</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#d63384;"></span> TAIL</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#ffc107;"></span> Visiting (curr)</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#28a745;"></span> Match Found</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#58b7ff;"></span> Normal Node</div>
+        </div>
+      </div>
+
+      <div class="vis-wrapper" id="vis-canvas">
+        <!-- Circular Loop SVG overlay -->
+        <svg class="circular-svg-overlay" id="circular-svg"></svg>
+
+        <!-- Staging area for new nodes / detached nodes -->
+        <div class="staging-area" id="staging-container" style="display: none;">
+          <span class="staging-label" id="staging-label"><i class="fa fa-star"></i> New Node Staging:</span>
+          <div id="staging-node-content"></div>
+        </div>
+
+        <!-- Main Linked List Chain -->
+        <div class="nodes-row" id="nodes-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="text-center py-3 text-muted" style="border-top: 1px solid #1a1a1a; font-size: 13px; background: #000;">
+    AlgoVis &middot; Data Structures Visualizer &middot; Singly, Doubly & Circular Linked Lists
+  </footer>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    /* ===================================================
+       1. DATA STRUCTURES & MODEL
+       Real Node-based Simulation using JS objects
+       { value, next, prev, id }
+       =================================================== */
+    let nodeIdCounter = 0;
+
+    class Node {
+      constructor(value) {
+        this.id = 'node_' + (++nodeIdCounter);
+        this.value = value;
+        this.next = null;
+        this.prev = null;
+      }
+    }
+
+    class LinkedList {
+      constructor(type = 'singly') {
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+        this.type = type; // 'singly' | 'doubly' | 'circular'
+      }
+
+      // Build list from array of values
+      buildFromArray(arr) {
+        this.head = null;
+        this.tail = null;
+        this.size = 0;
+        if (!arr || arr.length === 0) return;
+
+        for (let i = 0; i < arr.length; i++) {
+          const newNode = new Node(arr[i]);
+          if (!this.head) {
+            this.head = newNode;
+            this.tail = newNode;
+            if (this.type === 'circular') {
+              newNode.next = newNode; // Rule 8: Points to itself
+            }
+          } else {
+            if (this.type === 'singly') {
+              this.tail.next = newNode;
+              this.tail = newNode;
+            } else if (this.type === 'doubly') {
+              this.tail.next = newNode;
+              newNode.prev = this.tail;
+              this.tail = newNode;
+            } else if (this.type === 'circular') {
+              this.tail.next = newNode;
+              newNode.next = this.head; // Rule 4: Loop back to HEAD
+              this.tail = newNode;
+            }
+          }
+          this.size++;
+        }
+      }
+
+      // Helper to clone state for pre-recorded steps
+      cloneSnapshot(activeInfo = {}) {
+        const nodes = [];
+        if (this.head) {
+          let curr = this.head;
+          let count = 0;
+          while (curr && count < this.size) {
+            nodes.push({
+              id: curr.id,
+              value: curr.value,
+              isHead: (curr === this.head),
+              isTail: (curr === this.tail),
+              nextId: curr.next ? curr.next.id : null,
+              prevId: curr.prev ? curr.prev.id : null,
+              nextValue: curr.next ? curr.next.value : null,
+              prevValue: curr.prev ? curr.prev.value : null
+            });
+            curr = curr.next;
+            count++;
+            if (this.type === 'circular' && curr === this.head) break;
+          }
+        }
+
+        return {
+          type: this.type,
+          size: this.size,
+          nodes: nodes,
+          stagingNode: activeInfo.stagingNode ? { ...activeInfo.stagingNode } : null,
+          currNodeId: activeInfo.currNodeId || null,
+          prevNodeId: activeInfo.prevNodeId || null,
+          matchNodeId: activeInfo.matchNodeId || null,
+          highlightType: activeInfo.highlightType || null, // 'visiting', 'matched', 'comparing', 'deleting', etc.
+          title: activeInfo.title || 'Step',
+          desc: activeInfo.desc || '',
+          code: activeInfo.code || '',
+          circularArrowActive: (this.type === 'circular' && this.size > 0),
+          highlightArrowIndex: activeInfo.highlightArrowIndex !== undefined ? activeInfo.highlightArrowIndex : -1
+        };
+      }
+    }
+
+    /* ===================================================
+       2. GLOBAL STATE & PLAYBACK ENGINE
+       =================================================== */
+    let currentList = new LinkedList('singly');
+    let steps = [];
+    let currentStepIdx = 0;
+    let isPlaying = false;
+    let playbackInterval = null;
+    let stepDuration = 800; // ms
+
+    /* ===================================================
+       3. STEP GENERATORS (PRE-RECORDING ALL STEPS)
+       =================================================== */
+
+    // --- A. TRAVERSAL GENERATOR ---
+    function generateTraversalSteps(list, direction = 'forward') {
+      const stepsList = [];
+      const isReverse = (direction === 'reverse' && list.type === 'doubly');
+
+      if (!list.head) {
+        stepsList.push({
+          ...list.cloneSnapshot(),
+          title: 'Empty List Traversal',
+          desc: 'Cannot traverse: Linked List is empty (HEAD = NULL).',
+          code: 'if (HEAD === null) return;'
+        });
+        return stepsList;
+      }
+
+      // Step 0: Starting traversal
+      const startNode = isReverse ? list.tail : list.head;
+      const startPtr = isReverse ? 'TAIL' : 'HEAD';
+      stepsList.push({
+        ...list.cloneSnapshot({
+          currNodeId: startNode.id,
+          highlightType: 'visiting',
+          title: 'Start Traversal',
+          desc: `Starting ${isReverse ? 'Reverse' : 'Forward'} Traversal from ${startPtr} (node with value ${startNode.value}).`,
+          code: isReverse ? `Node curr = TAIL;` : `Node curr = HEAD;`
+        })
+      });
+
+      let curr = startNode;
+      let index = isReverse ? (list.size - 1) : 0;
+      let visitedCount = 0;
+
+      while (curr && visitedCount < list.size) {
+        visitedCount++;
+        // Step: Visiting node
+        stepsList.push({
+          ...list.cloneSnapshot({
+            currNodeId: curr.id,
+            highlightType: 'visiting',
+            title: `Visiting Node ${visitedCount} of ${list.size}`,
+            desc: `Visiting node at index ${index} with value ${curr.value}.`,
+            code: `// Visiting node ${curr.value} at index ${index}\nSystem.out.println(curr.val);`
+          })
+        });
+
+        // Advance pointer
+        if (isReverse) {
+          if (curr.prev) {
+            stepsList.push({
+              ...list.cloneSnapshot({
+                currNodeId: curr.id,
+                highlightType: 'visiting',
+                highlightArrowIndex: index - 1,
+                title: 'Move to Previous Node',
+                desc: `Moving backwards: curr = curr.prev (towards node ${curr.prev.value}).`,
+                code: `curr = curr.prev;`
+              })
+            });
+            curr = curr.prev;
+            index--;
+          } else {
+            // Reached head in reverse
+            stepsList.push({
+              ...list.cloneSnapshot({
+                currNodeId: curr.id,
+                highlightType: 'visiting',
+                title: 'Reached HEAD',
+                desc: `curr.prev is NULL. Reached HEAD in reverse. Traversal complete.`,
+                code: `// curr.prev == null: Traversal finished.`
+              })
+            });
+            break;
+          }
+        } else {
+          // Forward
+          if (list.type === 'circular') {
+            if (visitedCount === list.size) {
+              // At last node, loop points back to HEAD
+              stepsList.push({
+                ...list.cloneSnapshot({
+                  currNodeId: curr.id,
+                  highlightType: 'visiting',
+                  title: 'Circular Loop Detected',
+                  desc: `Last node's next (${curr.value}) points back to HEAD (${list.head.value}). All ${list.size} nodes visited once. Safe termination!`,
+                  code: `if (curr.next === HEAD) break; // Traversal cycle complete`
+                })
+              });
+              break;
+            } else {
+              stepsList.push({
+                ...list.cloneSnapshot({
+                  currNodeId: curr.id,
+                  highlightType: 'visiting',
+                  highlightArrowIndex: index,
+                  title: 'Move to Next Node',
+                  desc: `Advancing pointer: curr = curr.next (towards node ${curr.next.value}).`,
+                  code: `curr = curr.next;`
+                })
+              });
+              curr = curr.next;
+              index++;
+            }
+          } else {
+            // Singly or Doubly forward
+            if (curr.next) {
+              stepsList.push({
+                ...list.cloneSnapshot({
+                  currNodeId: curr.id,
+                  highlightType: 'visiting',
+                  highlightArrowIndex: index,
+                  title: 'Move to Next Node',
+                  desc: `Advancing pointer: curr = curr.next (towards node ${curr.next.value}).`,
+                  code: `curr = curr.next;`
+                })
+              });
+              curr = curr.next;
+              index++;
+            } else {
+              // End reached
+              stepsList.push({
+                ...list.cloneSnapshot({
+                  currNodeId: curr.id,
+                  highlightType: 'visiting',
+                  title: 'End of List Reached',
+                  desc: `curr.next is NULL. End of linked list reached. Visited all ${list.size} nodes.`,
+                  code: `// curr.next == null: End of list`
+                })
+              });
+              break;
+            }
+          }
+        }
+      }
+
+      // Final complete step
+      stepsList.push({
+        ...list.cloneSnapshot({
+          title: 'Traversal Complete',
+          desc: `Traversal successfully completed! Visited all ${list.size} nodes.`,
+          code: `// Traversal finished successfully`
+        })
+      });
+
+      return stepsList;
+    }
+
+    // --- B. SEARCHING GENERATOR ---
+    function generateSearchSteps(list, target) {
+      const stepsList = [];
+
+      if (!list.head) {
+        stepsList.push({
+          ...list.cloneSnapshot(),
+          title: 'Empty List Search',
+          desc: `Cannot search: list is empty (HEAD = NULL). Target "${target}" not found.`,
+          code: `if (HEAD === null) return -1;`
+        });
+        return stepsList;
+      }
+
+      // Step 0: Initial pointer at HEAD
+      stepsList.push({
+        ...list.cloneSnapshot({
+          currNodeId: list.head.id,
+          highlightType: 'comparing',
+          title: 'Begin Search',
+          desc: `Searching for target value "${target}". Start at HEAD (index 0).`,
+          code: `Node curr = HEAD;\nint index = 0;`
+        })
+      });
+
+      let curr = list.head;
+      let index = 0;
+      let found = false;
+
+      while (curr && index < list.size) {
+        const isMatch = (String(curr.value) === String(target));
+
+        // Comparison step
+        stepsList.push({
+          ...list.cloneSnapshot({
+            currNodeId: curr.id,
+            highlightType: isMatch ? 'matched' : 'comparing',
+            title: `Comparing at Index ${index}`,
+            desc: `Comparing curr.value (${curr.value}) with target (${target}): ${isMatch ? 'MATCH FOUND!' : 'Not equal, move to next.'}`,
+            code: `if (curr.val === "${target}") { /* ${isMatch ? 'FOUND' : 'NEXT'} */ }`
+          })
+        });
+
+        if (isMatch) {
+          found = true;
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              matchNodeId: curr.id,
+              highlightType: 'matched',
+              title: 'Search Result: Found!',
+              desc: `SUCCESS: Target value "${target}" found at index ${index}!`,
+              code: `return ${index}; // Target found at index ${index}`
+            })
+          });
+          break;
+        }
+
+        // Check advance or loop termination
+        if (list.type === 'circular') {
+          if (index === list.size - 1) {
+            // Returned back to HEAD without match
+            stepsList.push({
+              ...list.cloneSnapshot({
+                currNodeId: curr.id,
+                title: 'Circular Loop - Completed Cycle',
+                desc: `Returned back to HEAD after checking all nodes. Target "${target}" not found in circular list.`,
+                code: `if (curr.next === HEAD) return -1; // Safe stop`
+              })
+            });
+            break;
+          }
+        } else {
+          if (!curr.next) {
+            stepsList.push({
+              ...list.cloneSnapshot({
+                currNodeId: curr.id,
+                title: 'End of List',
+                desc: `curr.next is NULL. Target "${target}" not found in list.`,
+                code: `// Reached NULL: target not present`
+              })
+            });
+            break;
+          }
+        }
+
+        // Advance to next
+        stepsList.push({
+          ...list.cloneSnapshot({
+            currNodeId: curr.id,
+            highlightType: 'visiting',
+            highlightArrowIndex: index,
+            title: 'Advance to Next Node',
+            desc: `curr.value (${curr.value}) != ${target}. Advance pointer: curr = curr.next. Checking index ${index + 1}.`,
+            code: `curr = curr.next;\nindex++;`
+          })
+        });
+
+        curr = curr.next;
+        index++;
+      }
+
+      if (!found) {
+        stepsList.push({
+          ...list.cloneSnapshot({
+            title: 'Search Result: Not Found',
+            desc: `RESULT: Target "${target}" not found in the linked list.`,
+            code: `return -1; // Not found`
+          })
+        });
+      }
+
+      return stepsList;
+    }
+
+    // --- C. INSERTION GENERATOR ---
+    function generateInsertSteps(list, value, position) {
+      const stepsList = [];
+      const pos = Math.max(0, Math.min(position, list.size));
+      const stagingId = 'node_' + (++nodeIdCounter);
+
+      // Step 1: Create newNode in staging area
+      const initialStaging = {
+        id: stagingId,
+        value: value,
+        nextId: null,
+        prevId: null,
+        status: 'new'
+      };
+
+      stepsList.push({
+        ...list.cloneSnapshot({
+          stagingNode: initialStaging,
+          title: 'Step 1: Allocate New Node',
+          desc: `Created new Node with value "${value}". Position to insert: ${pos} (0-based).`,
+          code: `Node newNode = new Node(${value});\n// newNode.next = null, newNode.prev = null`
+        })
+      });
+
+      // Simulation of insertion based on list type and position:
+      if (list.size === 0) {
+        // Inserting into empty list
+        if (list.type === 'circular') {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: stagingId },
+              title: 'Step 2: Point Circular Link to Itself',
+              desc: `Rule 8: In single node circular list, node.next points to itself: newNode.next = newNode.`,
+              code: `newNode.next = newNode;`
+            })
+          });
+        }
+
+        stepsList.push({
+          ...list.cloneSnapshot({
+            stagingNode: initialStaging,
+            title: 'Step 3: Update HEAD Pointer',
+            desc: `Set HEAD = newNode${list.type === 'doubly' ? ', TAIL = newNode' : ''}. List initialized.`,
+            code: list.type === 'doubly' ? `HEAD = newNode;\nTAIL = newNode;` : `HEAD = newNode;`
+          })
+        });
+      } else if (pos === 0) {
+        // --- INSERT AT BEGINNING ---
+        if (list.type === 'singly') {
+          // Singly: newNode.next = old, HEAD = new
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              title: 'Step 2: Link newNode.next to Old HEAD',
+              desc: `Set newNode.next = HEAD (points to previous first node with value ${list.head.value}).`,
+              code: `newNode.next = HEAD;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              title: 'Step 3: Update HEAD to newNode',
+              desc: `Set HEAD = newNode. New node is now the official HEAD of the singly linked list.`,
+              code: `HEAD = newNode;`
+            })
+          });
+        } else if (list.type === 'doubly') {
+          // Doubly: updates prev and next pointers for all affected nodes
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              title: 'Step 2: Link newNode.next to HEAD',
+              desc: `Set newNode.next = HEAD (node ${list.head.value}).`,
+              code: `newNode.next = HEAD;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              currNodeId: list.head.id,
+              title: 'Step 3: Link Old HEAD.prev to newNode',
+              desc: `Set HEAD.prev = newNode (node ${list.head.value} now points back to newNode).`,
+              code: `HEAD.prev = newNode;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              title: 'Step 4: Update HEAD Pointer',
+              desc: `Set HEAD = newNode. HEAD.prev remains NULL. Both prev and next pointers updated!`,
+              code: `HEAD = newNode;\nnewNode.prev = null;`
+            })
+          });
+        } else if (list.type === 'circular') {
+          // Circular: maintains circular link
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: initialStaging,
+              currNodeId: list.tail.id,
+              title: 'Step 2: Locate Last Node (TAIL)',
+              desc: `Traverse to last node (value ${list.tail.value}) whose next currently points to HEAD.`,
+              code: `Node tail = getTail(); // tail.next == HEAD`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              currNodeId: list.tail.id,
+              title: 'Step 3: Link newNode.next to Old HEAD',
+              desc: `Set newNode.next = HEAD (points to current first node ${list.head.value}).`,
+              code: `newNode.next = HEAD;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              currNodeId: list.tail.id,
+              title: 'Step 4: Update Last Node\'s Next Pointer',
+              desc: `Update tail.next = newNode. Circular arrow now directs to the new node.`,
+              code: `tail.next = newNode;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              title: 'Step 5: Update HEAD to newNode',
+              desc: `Set HEAD = newNode. Circular connection safely maintained!`,
+              code: `HEAD = newNode;`
+            })
+          });
+        }
+      } else if (pos === list.size) {
+        // --- INSERT AT END ---
+        stepsList.push({
+          ...list.cloneSnapshot({
+            stagingNode: initialStaging,
+            currNodeId: list.tail.id,
+            title: 'Step 2: Traverse to Last Node (TAIL)',
+            desc: `Traverse to the end of the list: node at index ${list.size - 1} (value ${list.tail.value}).`,
+            code: `Node curr = tail; // Reached last node`
+          })
+        });
+
+        if (list.type === 'singly') {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: initialStaging,
+              currNodeId: list.tail.id,
+              title: 'Step 3: Link Last Node to newNode',
+              desc: `Set curr.next = newNode and newNode.next = NULL.`,
+              code: `curr.next = newNode;\nnewNode.next = null;\nTAIL = newNode;`
+            })
+          });
+        } else if (list.type === 'doubly') {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, prevId: list.tail.id },
+              currNodeId: list.tail.id,
+              title: 'Step 3: Link newNode.prev to TAIL',
+              desc: `Set newNode.prev = TAIL (node ${list.tail.value}).`,
+              code: `newNode.prev = TAIL;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, prevId: list.tail.id },
+              currNodeId: list.tail.id,
+              title: 'Step 4: Link TAIL.next to newNode',
+              desc: `Set TAIL.next = newNode. Forward link established.`,
+              code: `TAIL.next = newNode;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, prevId: list.tail.id },
+              title: 'Step 5: Update TAIL Pointer',
+              desc: `Set TAIL = newNode. TAIL.next = NULL.`,
+              code: `TAIL = newNode;\nTAIL.next = null;`
+            })
+          });
+        } else if (list.type === 'circular') {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              currNodeId: list.tail.id,
+              title: 'Step 3: Link newNode.next to HEAD',
+              desc: `Rule 4: Set newNode.next = HEAD (circular link points back to HEAD).`,
+              code: `newNode.next = HEAD;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: list.head.id },
+              currNodeId: list.tail.id,
+              title: 'Step 4: Update Previous Tail Next Pointer',
+              desc: `Set curr.next = newNode. Circular arrow now loops from newNode back to HEAD.`,
+              code: `curr.next = newNode;\nTAIL = newNode;`
+            })
+          });
+        }
+      } else {
+        // --- INSERT AT MIDDLE POSITION ---
+        let curr = list.head;
+        for (let i = 0; i < pos - 1; i++) {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: initialStaging,
+              currNodeId: curr.id,
+              title: `Step 2: Traverse to Index ${i}`,
+              desc: `Traversing towards insertion index ${pos}. Currently at index ${i} (node ${curr.value}).`,
+              code: `curr = curr.next;`
+            })
+          });
+          curr = curr.next;
+        }
+
+        // Reached pos - 1
+        stepsList.push({
+          ...list.cloneSnapshot({
+            stagingNode: initialStaging,
+            currNodeId: curr.id,
+            title: `Step 3: Located Node Before Insertion Point`,
+            desc: `curr is at index ${pos - 1} (value ${curr.value}). Next node is index ${pos} (value ${curr.next.value}).`,
+            code: `Node nextNode = curr.next;`
+          })
+        });
+
+        if (list.type === 'singly' || list.type === 'circular') {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: curr.next.id },
+              currNodeId: curr.id,
+              title: 'Step 4: Link newNode.next to curr.next',
+              desc: `Set newNode.next = curr.next (points to node ${curr.next.value}).`,
+              code: `newNode.next = curr.next;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: curr.next.id },
+              currNodeId: curr.id,
+              title: 'Step 5: Link curr.next to newNode',
+              desc: `Set curr.next = newNode. Node inserted between ${curr.value} and ${curr.next.value}!`,
+              code: `curr.next = newNode;`
+            })
+          });
+        } else if (list.type === 'doubly') {
+          const nextNode = curr.next;
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: nextNode.id, prevId: curr.id },
+              currNodeId: curr.id,
+              title: 'Step 4: Connect newNode Pointers',
+              desc: `Set newNode.next = curr.next (node ${nextNode.value}) and newNode.prev = curr (node ${curr.value}).`,
+              code: `newNode.next = curr.next;\nnewNode.prev = curr;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: nextNode.id, prevId: curr.id },
+              currNodeId: nextNode.id,
+              title: 'Step 5: Update nextNode.prev to newNode',
+              desc: `Set curr.next.prev = newNode (node ${nextNode.value} now points backward to newNode).`,
+              code: `curr.next.prev = newNode;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { ...initialStaging, nextId: nextNode.id, prevId: curr.id },
+              currNodeId: curr.id,
+              title: 'Step 6: Update curr.next to newNode',
+              desc: `Set curr.next = newNode. Both forward and backward bidirectional links fully established!`,
+              code: `curr.next = newNode;`
+            })
+          });
+        }
+      }
+
+      // Perform real node-based simulation update on LinkedList instance
+      performActualInsert(list, value, pos, stagingId);
+
+      // Final step: Updated list view
+      stepsList.push({
+        ...list.cloneSnapshot({
+          matchNodeId: stagingId,
+          highlightType: 'matched',
+          title: 'Insertion Completed',
+          desc: `Successfully inserted node with value "${value}" at index ${pos}! New list size: ${list.size}.`,
+          code: `// Insertion complete. List size = ${list.size}`
+        })
+      });
+
+      return stepsList;
+    }
+
+    // Helper: Real node pointer updates
+    function performActualInsert(list, value, pos, preferredId) {
+      const newNode = new Node(value);
+      if (preferredId) newNode.id = preferredId;
+
+      if (list.size === 0) {
+        list.head = newNode;
+        list.tail = newNode;
+        if (list.type === 'circular') {
+          newNode.next = newNode;
+        }
+      } else if (pos === 0) {
+        if (list.type === 'singly') {
+          newNode.next = list.head;
+          list.head = newNode;
+        } else if (list.type === 'doubly') {
+          newNode.next = list.head;
+          list.head.prev = newNode;
+          list.head = newNode;
+        } else if (list.type === 'circular') {
+          newNode.next = list.head;
+          list.tail.next = newNode;
+          list.head = newNode;
+        }
+      } else if (pos >= list.size) {
+        if (list.type === 'singly') {
+          list.tail.next = newNode;
+          list.tail = newNode;
+        } else if (list.type === 'doubly') {
+          list.tail.next = newNode;
+          newNode.prev = list.tail;
+          list.tail = newNode;
+        } else if (list.type === 'circular') {
+          list.tail.next = newNode;
+          newNode.next = list.head;
+          list.tail = newNode;
+        }
+      } else {
+        let curr = list.head;
+        for (let i = 0; i < pos - 1; i++) {
+          curr = curr.next;
+        }
+        if (list.type === 'singly' || list.type === 'circular') {
+          newNode.next = curr.next;
+          curr.next = newNode;
+        } else if (list.type === 'doubly') {
+          newNode.next = curr.next;
+          newNode.prev = curr;
+          curr.next.prev = newNode;
+          curr.next = newNode;
+        }
+      }
+      list.size++;
+    }
+
+    // --- D. DELETION GENERATOR ---
+    function generateDeleteSteps(list, position) {
+      const stepsList = [];
+
+      if (!list.head || list.size === 0) {
+        stepsList.push({
+          ...list.cloneSnapshot(),
+          title: 'Empty List Error',
+          desc: 'Cannot delete: Linked list is empty (HEAD = NULL).',
+          code: `if (HEAD === null) throw new Error("Empty list");`
+        });
+        return stepsList;
+      }
+
+      const pos = Math.max(0, Math.min(position, list.size - 1));
+
+      // Case 1: Single node deletion (Rule 8: single node sets HEAD = NULL)
+      if (list.size === 1) {
+        stepsList.push({
+          ...list.cloneSnapshot({
+            currNodeId: list.head.id,
+            highlightType: 'deleting',
+            title: 'Step 1: Identify Single Node',
+            desc: `List contains only 1 node (value ${list.head.value}). HEAD ${list.type === 'doubly' ? 'and TAIL ' : ''}will become NULL.`,
+            code: `Node temp = HEAD;`
+          })
+        });
+
+        if (list.type === 'circular') {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: list.head.id,
+              highlightType: 'deleting',
+              title: 'Step 2: Disconnect Self-Pointer',
+              desc: `Rule 8: In single node circular list, temp.next was pointing to itself. Reset HEAD = NULL.`,
+              code: `temp.next = null;\nHEAD = null;`
+            })
+          });
+        }
+
+        // Mutate
+        list.head = null;
+        list.tail = null;
+        list.size = 0;
+
+        stepsList.push({
+          ...list.cloneSnapshot({
+            title: 'Deletion Complete',
+            desc: `Node removed. List is now empty: HEAD = NULL${list.type === 'doubly' ? ', TAIL = NULL' : ''}.`,
+            code: `HEAD = null; // List is now empty`
+          })
+        });
+
+        return stepsList;
+      }
+
+      // Case 2: Delete from Beginning (pos = 0)
+      if (pos === 0) {
+        const oldHead = list.head;
+        const newHead = list.head.next;
+
+        stepsList.push({
+          ...list.cloneSnapshot({
+            currNodeId: oldHead.id,
+            highlightType: 'deleting',
+            title: 'Step 1: Mark HEAD Node for Deletion',
+            desc: `Marking current HEAD (index 0, value ${oldHead.value}) for deletion.`,
+            code: `Node temp = HEAD;`
+          })
+        });
+
+        if (list.type === 'singly') {
+          // Singly: HEAD = HEAD.next (at beginning)
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: newHead.id,
+              title: 'Step 2: Advance HEAD Pointer',
+              desc: `Singly: HEAD = HEAD.next (new HEAD is node with value ${newHead.value}).`,
+              code: `HEAD = HEAD.next;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { id: oldHead.id, value: oldHead.value, status: 'deleting' },
+              currNodeId: newHead.id,
+              title: 'Step 3: Disconnect Old Head',
+              desc: `Disconnect temp.next = null. Old head node is deleted from list.`,
+              code: `temp.next = null; // Removed`
+            })
+          });
+
+          // Mutate
+          list.head = newHead;
+          list.size--;
+        } else if (list.type === 'doubly') {
+          // Doubly: updates both neighbors' pointers
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: newHead.id,
+              title: 'Step 2: Advance HEAD Pointer',
+              desc: `Set HEAD = HEAD.next (node ${newHead.value}).`,
+              code: `HEAD = HEAD.next;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: newHead.id,
+              title: 'Step 3: Reset New HEAD Prev Pointer to NULL',
+              desc: `Rule 5: Update HEAD.prev = NULL (head node in doubly list always has prev = NULL).`,
+              code: `HEAD.prev = null;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              stagingNode: { id: oldHead.id, value: oldHead.value, status: 'deleting' },
+              title: 'Step 4: Disconnect Old Head',
+              desc: `Set temp.next = null. Old head fully removed.`,
+              code: `temp.next = null;`
+            })
+          });
+
+          // Mutate
+          list.head = newHead;
+          list.head.prev = null;
+          list.size--;
+        } else if (list.type === 'circular') {
+          // Circular: maintains circular link
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: list.tail.id,
+              title: 'Step 2: Locate Last Node (TAIL)',
+              desc: `Traverse to the last node (value ${list.tail.value}) to maintain circular link.`,
+              code: `Node tail = getTail();`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: list.tail.id,
+              title: 'Step 3: Update TAIL.next to New Head',
+              desc: `Set tail.next = HEAD.next (node ${newHead.value}). Circular link maintained!`,
+              code: `tail.next = HEAD.next;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: newHead.id,
+              title: 'Step 4: Update HEAD Pointer',
+              desc: `Set HEAD = HEAD.next (new HEAD is node ${newHead.value}).`,
+              code: `HEAD = HEAD.next;`
+            })
+          });
+
+          // Mutate
+          list.tail.next = newHead;
+          list.head = newHead;
+          list.size--;
+        }
+      } else if (pos === list.size - 1) {
+        // Case 3: Delete from End
+        if (list.type === 'singly') {
+          let curr = list.head;
+          for (let i = 0; i < list.size - 2; i++) {
+            stepsList.push({
+              ...list.cloneSnapshot({
+                currNodeId: curr.id,
+                title: `Step 1: Traverse to Index ${i}`,
+                desc: `Traversing towards second-to-last node. Currently at index ${i} (node ${curr.value}).`,
+                code: `curr = curr.next;`
+              })
+            });
+            curr = curr.next;
+          }
+
+          const toDelete = curr.next;
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              title: 'Step 2: Located Second-to-Last Node',
+              desc: `curr is at index ${list.size - 2} (value ${curr.value}). Target to delete is tail (value ${toDelete.value}).`,
+              code: `Node toDelete = curr.next;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              stagingNode: { id: toDelete.id, value: toDelete.value, status: 'deleting' },
+              title: 'Step 3: Disconnect Last Node',
+              desc: `Set curr.next = NULL and update TAIL = curr.`,
+              code: `curr.next = null;\nTAIL = curr;`
+            })
+          });
+
+          // Mutate
+          curr.next = null;
+          list.tail = curr;
+          list.size--;
+        } else if (list.type === 'doubly') {
+          const oldTail = list.tail;
+          const newTail = list.tail.prev;
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: oldTail.id,
+              highlightType: 'deleting',
+              title: 'Step 1: Mark TAIL Node for Deletion',
+              desc: `Target is TAIL node (index ${list.size - 1}, value ${oldTail.value}).`,
+              code: `Node temp = TAIL;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: newTail.id,
+              title: 'Step 2: Move TAIL to Previous Node',
+              desc: `Set TAIL = TAIL.prev (node with value ${newTail.value}).`,
+              code: `TAIL = TAIL.prev;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: newTail.id,
+              stagingNode: { id: oldTail.id, value: oldTail.value, status: 'deleting' },
+              title: 'Step 3: Update New TAIL Next to NULL',
+              desc: `Set TAIL.next = NULL. Old tail disconnected.`,
+              code: `TAIL.next = null;\ntemp.prev = null;`
+            })
+          });
+
+          // Mutate
+          newTail.next = null;
+          list.tail = newTail;
+          list.size--;
+        } else if (list.type === 'circular') {
+          let curr = list.head;
+          for (let i = 0; i < list.size - 2; i++) {
+            curr = curr.next;
+          }
+          const oldTail = curr.next;
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              title: 'Step 1: Locate Second-to-Last Node',
+              desc: `curr is at node ${curr.value} (index ${list.size - 2}). Target to remove is ${oldTail.value}.`,
+              code: `// curr is second-to-last node`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              title: 'Step 2: Update Circular Link to HEAD',
+              desc: `Set curr.next = HEAD. Circular link updated to bypass old tail!`,
+              code: `curr.next = HEAD;\nTAIL = curr;`
+            })
+          });
+
+          // Mutate
+          curr.next = list.head;
+          list.tail = curr;
+          list.size--;
+        }
+      } else {
+        // Case 4: Delete at Middle Position (0 < pos < size - 1)
+        let curr = list.head;
+        for (let i = 0; i < pos - 1; i++) {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              title: `Step 1: Traverse to Index ${i}`,
+              desc: `Traversing towards node before deletion target. At index ${i} (node ${curr.value}).`,
+              code: `curr = curr.next;`
+            })
+          });
+          curr = curr.next;
+        }
+
+        const toDelete = curr.next;
+        const nextNode = toDelete.next;
+
+        stepsList.push({
+          ...list.cloneSnapshot({
+            currNodeId: toDelete.id,
+            highlightType: 'deleting',
+            title: `Step 2: Identify Target Node at Index ${pos}`,
+            desc: `Target node to delete is at index ${pos} (value ${toDelete.value}).`,
+            code: `Node toDelete = curr.next;`
+          })
+        });
+
+        if (list.type === 'singly' || list.type === 'circular') {
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              stagingNode: { id: toDelete.id, value: toDelete.value, status: 'deleting' },
+              title: 'Step 3: Bypass Target Node',
+              desc: `Set curr.next = toDelete.next (node ${curr.value} now points directly to node ${nextNode.value}).`,
+              code: `curr.next = toDelete.next;\ntoDelete.next = null;`
+            })
+          });
+
+          // Mutate
+          curr.next = nextNode;
+          list.size--;
+        } else if (list.type === 'doubly') {
+          // Doubly: updates both neighbors' pointers
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: curr.id,
+              title: 'Step 3: Update Forward Link',
+              desc: `Set curr.next = toDelete.next (points to node ${nextNode.value}).`,
+              code: `curr.next = toDelete.next;`
+            })
+          });
+
+          stepsList.push({
+            ...list.cloneSnapshot({
+              currNodeId: nextNode.id,
+              stagingNode: { id: toDelete.id, value: toDelete.value, status: 'deleting' },
+              title: 'Step 4: Update Backward Link',
+              desc: `Set nextNode.prev = curr (node ${nextNode.value} now points back to node ${curr.value}).`,
+              code: `nextNode.prev = curr;\ntoDelete.prev = null;\ntoDelete.next = null;`
+            })
+          });
+
+          // Mutate
+          curr.next = nextNode;
+          nextNode.prev = curr;
+          list.size--;
+        }
+      }
+
+      // Final step
+      stepsList.push({
+        ...list.cloneSnapshot({
+          title: 'Deletion Complete',
+          desc: `Node successfully deleted at index ${pos}. Remaining list size: ${list.size}.`,
+          code: `// Deletion operation finished successfully`
+        })
+      });
+
+      return stepsList;
+    }
+
+    /* ===================================================
+       4. UI RENDERING ENGINE
+       =================================================== */
+
+    function renderCurrentStep() {
+      if (steps.length === 0) return;
+      const step = steps[currentStepIdx];
+
+      // Update counters & badges
+      document.getElementById('step-counter').textContent = `Step: ${currentStepIdx + 1} / ${steps.length}`;
+      document.getElementById('explanation-step-title').textContent = step.title;
+      document.getElementById('explanation-desc-text').innerHTML = step.desc;
+      document.getElementById('explanation-code-text').textContent = step.code;
+
+      const typeBadge = document.getElementById('list-status-badge');
+      typeBadge.textContent = step.type.toUpperCase() + ' LINKED LIST';
+
+      // Update max indices in inputs
+      updateInputConstraints();
+
+      // Render Staging Area (for new nodes / detached nodes)
+      const stagingContainer = document.getElementById('staging-container');
+      const stagingContent = document.getElementById('staging-node-content');
+      if (step.stagingNode) {
+        stagingContainer.style.display = 'flex';
+        let stagingHtml = `
+          <div class="node-box new-node">
+            <span class="node-val">${step.stagingNode.value}</span>
+            <span class="node-divider">|</span>
+            <span class="node-ptr active-ptr">
+              ${step.stagingNode.nextId ? 'next →' : 'next: NULL'}
+            </span>
+          </div>
+        `;
+        stagingContent.innerHTML = stagingHtml;
+      } else {
+        stagingContainer.style.display = 'none';
+        stagingContent.innerHTML = '';
+      }
+
+      // Render Nodes Container
+      const nodesContainer = document.getElementById('nodes-container');
+      nodesContainer.innerHTML = '';
+
+      if (!step.nodes || step.nodes.length === 0) {
+        // EMPTY LIST VIEW (Rule 7: HEAD = NULL shown)
+        if (step.type === 'doubly') {
+          nodesContainer.innerHTML = `
+            <div class="d-flex align-items-center">
+              <span class="badge tag-head me-2">HEAD</span>
+              <span class="arrow-connector doubly">⇄</span>
+              <div class="null-box">NULL</div>
+              <span class="arrow-connector doubly">⇄</span>
+              <span class="badge tag-tail ms-2">TAIL</span>
+            </div>
+          `;
+        } else {
+          nodesContainer.innerHTML = `
+            <div class="d-flex align-items-center">
+              <div class="head-lead"><span>HEAD</span> →</div>
+              <div class="null-box">NULL</div>
+            </div>
+          `;
+        }
+        drawCircularArrow(false);
+        return;
+      }
+
+      // If Doubly Linked List, begins with NULL <-
+      if (step.type === 'doubly') {
+        const nullStart = document.createElement('div');
+        nullStart.className = 'd-inline-flex align-items-center';
+        nullStart.innerHTML = `
+          <div class="null-box">NULL</div>
+          <div class="arrow-connector doubly">←</div>
+        `;
+        nodesContainer.appendChild(nullStart);
+      } else {
+        // Singly & Circular HEAD label lead
+        const headLead = document.createElement('div');
+        headLead.className = 'head-lead';
+        headLead.innerHTML = `<span>HEAD</span> →`;
+        nodesContainer.appendChild(headLead);
+      }
+
+      // Render Each Node Box
+      step.nodes.forEach((node, idx) => {
+        const nodeWrapper = document.createElement('div');
+        nodeWrapper.className = 'node-item-wrapper';
+        nodeWrapper.id = `node-item-${node.id}`;
+
+        // Pointer Tags (HEAD, TAIL, curr, MATCH)
+        const badgesContainer = document.createElement('div');
+        badgesContainer.className = 'node-badges';
+
+        if (node.isHead) {
+          const b = document.createElement('span');
+          b.className = 'pointer-tag tag-head';
+          b.textContent = 'HEAD';
+          badgesContainer.appendChild(b);
+        }
+        if (node.isTail) {
+          const b = document.createElement('span');
+          b.className = 'pointer-tag tag-tail';
+          b.textContent = 'TAIL';
+          badgesContainer.appendChild(b);
+        }
+        if (step.currNodeId === node.id) {
+          const b = document.createElement('span');
+          b.className = 'pointer-tag tag-curr';
+          b.textContent = 'curr';
+          badgesContainer.appendChild(b);
+        }
+        if (step.matchNodeId === node.id) {
+          const b = document.createElement('span');
+          b.className = 'pointer-tag tag-match';
+          b.textContent = 'MATCH';
+          badgesContainer.appendChild(b);
+        }
+
+        nodeWrapper.appendChild(badgesContainer);
+
+        // Node Content Box
+        const nodeBox = document.createElement('div');
+        nodeBox.className = 'node-box';
+        nodeBox.id = `node-box-${idx}`;
+
+        // Node highlight state
+        if (step.matchNodeId === node.id) {
+          nodeBox.classList.add('matched');
+        } else if (step.currNodeId === node.id) {
+          if (step.highlightType === 'visiting') nodeBox.classList.add('visiting');
+          else if (step.highlightType === 'comparing') nodeBox.classList.add('comparing');
+          else if (step.highlightType === 'deleting') nodeBox.classList.add('deleting');
+          else nodeBox.classList.add('visiting');
+        }
+
+        // Inner HTML based on list type
+        if (step.type === 'singly') {
+          // [ Value | next ]
+          const isLast = (idx === step.nodes.length - 1);
+          nodeBox.innerHTML = `
+            <span class="node-val">${node.value}</span>
+            <span class="node-divider">|</span>
+            <span class="node-ptr ${isLast ? '' : 'active-ptr'}">
+              ${isLast ? 'NULL' : 'next →'}
+            </span>
+          `;
+        } else if (step.type === 'doubly') {
+          // [ prev | Value | next ]
+          const isFirst = (idx === 0);
+          const isLast = (idx === step.nodes.length - 1);
+          nodeBox.innerHTML = `
+            <span class="node-ptr ${isFirst ? '' : 'active-ptr'}">${isFirst ? 'NULL' : '← prev'}</span>
+            <span class="node-divider">|</span>
+            <span class="node-val">${node.value}</span>
+            <span class="node-divider">|</span>
+            <span class="node-ptr ${isLast ? '' : 'active-ptr'}">${isLast ? 'NULL' : 'next →'}</span>
+          `;
+        } else if (step.type === 'circular') {
+          // Circular node
+          const isLast = (idx === step.nodes.length - 1);
+          nodeBox.innerHTML = `
+            <span class="node-val">${node.value}</span>
+            <span class="node-divider">|</span>
+            <span class="node-ptr active-ptr">
+              ${isLast ? 'next ⤹' : 'next →'}
+            </span>
+          `;
+        }
+
+        nodeWrapper.appendChild(nodeBox);
+
+        // 0-based Index Label
+        const indexLabel = document.createElement('div');
+        indexLabel.className = 'node-index-label';
+        indexLabel.textContent = `index ${idx}`;
+        nodeWrapper.appendChild(indexLabel);
+
+        nodesContainer.appendChild(nodeWrapper);
+
+        // Connector Arrow between nodes
+        if (idx < step.nodes.length - 1) {
+          const arrow = document.createElement('div');
+          arrow.className = `arrow-connector ${step.type === 'doubly' ? 'doubly' : ''}`;
+          if (step.highlightArrowIndex === idx) arrow.classList.add('highlighted');
+          arrow.innerHTML = (step.type === 'doubly') ? '⇄' : '→';
+          nodesContainer.appendChild(arrow);
+        }
+      });
+
+      // Tail Terminator Arrow & NULL for Singly / Doubly
+      if (step.type === 'singly') {
+        const endContainer = document.createElement('div');
+        endContainer.className = 'd-inline-flex align-items-center';
+        endContainer.innerHTML = `
+          <div class="arrow-connector">→</div>
+          <div class="null-box">NULL</div>
+        `;
+        nodesContainer.appendChild(endContainer);
+      } else if (step.type === 'doubly') {
+        const endContainer = document.createElement('div');
+        endContainer.className = 'd-inline-flex align-items-center';
+        endContainer.innerHTML = `
+          <div class="arrow-connector doubly">→</div>
+          <div class="null-box">NULL</div>
+        `;
+        nodesContainer.appendChild(endContainer);
+      }
+
+      // Draw Circular loop-back arrow if Circular Linked List
+      setTimeout(() => {
+        drawCircularArrow(step.type === 'circular' && step.nodes.length > 0);
+      }, 50);
+    }
+
+    /* ===================================================
+       5. CIRCULAR SVG ARROW DRAWING (RULE 4 & RULE 8)
+       Draws real SVG curved path from last node to HEAD
+       =================================================== */
+    function drawCircularArrow(show) {
+      const svg = document.getElementById('circular-svg');
+      svg.innerHTML = '';
+      if (!show) return;
+
+      const canvas = document.getElementById('vis-canvas');
+      const nodesContainer = document.getElementById('nodes-container');
+      const nodeItems = nodesContainer.querySelectorAll('.node-item-wrapper');
+      if (nodeItems.length === 0) return;
+
+      // Ensure SVG covers the full scrollable area
+      const fullWidth = Math.max(canvas.scrollWidth, canvas.clientWidth);
+      const fullHeight = Math.max(canvas.scrollHeight, canvas.clientHeight);
+      svg.style.width = fullWidth + 'px';
+      svg.style.height = fullHeight + 'px';
+
+      const canvasRect = canvas.getBoundingClientRect();
+      const firstNode = nodeItems[0];
+      const lastNode = nodeItems[nodeItems.length - 1];
+
+      const firstBox = firstNode.querySelector('.node-box').getBoundingClientRect();
+      const lastBox = lastNode.querySelector('.node-box').getBoundingClientRect();
+
+      const scrollLeft = canvas.scrollLeft;
+      const scrollTop = canvas.scrollTop;
+
+      // Coordinates relative to canvas scroll area
+      const xStart = (lastBox.right - canvasRect.left) + scrollLeft + 4;
+      const yStart = (lastBox.top + lastBox.height / 2) - canvasRect.top + scrollTop;
+
+      const xEnd = (firstBox.left - canvasRect.left) + scrollLeft - 4;
+      const yEnd = (firstBox.top + firstBox.height / 2) - canvasRect.top + scrollTop;
+
+      const loopY = Math.max(yStart, yEnd) + 48;
+
+      // SVG Definitions (Arrowhead marker)
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      defs.innerHTML = `
+        <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 1 L 10 5 L 0 9 z" fill="#58b7ff" />
+        </marker>
+      `;
+      svg.appendChild(defs);
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+      if (nodeItems.length === 1) {
+        // Single node loops into itself (Rule 8)
+        const d = `M ${xStart} ${yStart} C ${xStart + 35} ${yStart + 45}, ${xEnd - 35} ${yEnd + 45}, ${xEnd} ${yEnd}`;
+        path.setAttribute('d', d);
+      } else {
+        // Multi-node loop back under all nodes to HEAD (Rule 4)
+        const d = `M ${xStart} ${yStart} C ${xStart + 40} ${loopY}, ${xEnd - 35} ${loopY}, ${xEnd} ${yEnd}`;
+        path.setAttribute('d', d);
+      }
+
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', '#58b7ff');
+      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('stroke-dasharray', '5,5');
+      path.setAttribute('marker-end', 'url(#arrow)');
+      svg.appendChild(path);
+
+      // Label on the circular return path
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', String((xStart + xEnd) / 2));
+      text.setAttribute('y', String(loopY + 16));
+      text.setAttribute('fill', '#937BEB');
+      text.setAttribute('font-size', '13');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('font-family', 'sans-serif');
+      text.textContent = 'next points back to HEAD (Circular Link)';
+      svg.appendChild(text);
+    }
+
+    // Dynamic redrawing on resize and horizontal scroll
+    window.addEventListener('resize', () => {
+      if (currentList.type === 'circular') {
+        drawCircularArrow(currentList.size > 0);
+      }
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+      const c = document.getElementById('vis-canvas');
+      if (c) {
+        c.addEventListener('scroll', () => {
+          if (currentList.type === 'circular') {
+            drawCircularArrow(currentList.size > 0);
+          }
+        });
+      }
+    });
+
+    /* ===================================================
+       6. PLAYBACK CONTROLS
+       =================================================== */
+    function nextStep() {
+      if (currentStepIdx < steps.length - 1) {
+        currentStepIdx++;
+        renderCurrentStep();
+      } else {
+        pausePlayback();
+      }
+    }
+
+    function prevStep() {
+      if (currentStepIdx > 0) {
+        currentStepIdx--;
+        renderCurrentStep();
+      }
+    }
+
+    function togglePlayPause() {
+      if (isPlaying) {
+        pausePlayback();
+      } else {
+        startPlayback();
+      }
+    }
+
+    function startPlayback() {
+      if (currentStepIdx >= steps.length - 1) {
+        currentStepIdx = 0;
+      }
+      isPlaying = true;
+      document.getElementById('play-pause-icon').className = 'fa fa-pause';
+      document.getElementById('play-pause-text').textContent = 'Pause';
+      clearInterval(playbackInterval);
+      playbackInterval = setInterval(() => {
+        if (currentStepIdx < steps.length - 1) {
+          nextStep();
+        } else {
+          pausePlayback();
+        }
+      }, stepDuration);
+    }
+
+    function pausePlayback() {
+      isPlaying = false;
+      clearInterval(playbackInterval);
+      document.getElementById('play-pause-icon').className = 'fa fa-play';
+      document.getElementById('play-pause-text').textContent = 'Play';
+    }
+
+    function resetPlayback() {
+      pausePlayback();
+      currentStepIdx = 0;
+      renderCurrentStep();
+    }
+
+    /* ===================================================
+       7. USER ACTION HANDLERS
+       =================================================== */
+
+    // Select List Type (Singly, Doubly, Circular)
+    function selectListType(type) {
+      if (currentList.type === type) return;
+      pausePlayback();
+      currentList.type = type;
+
+      // Update navbar links
+      document.querySelectorAll('.navbar .nav-link-btn').forEach(btn => {
+        if (['nav-singly','nav-doubly','nav-circular'].includes(btn.id)) {
+          btn.classList.remove('active');
+        }
+      });
+      const navBtn = document.getElementById(`nav-${type}`);
+      if (navBtn) navBtn.classList.add('active');
+
+      // Update pills
+      document.querySelectorAll('.type-pill').forEach(p => p.classList.remove('active'));
+      const pill = document.getElementById(`pill-${type}`);
+      if (pill) pill.classList.add('active');
+
+      // Show/Hide reverse traversal button
+      const revBtn = document.getElementById('btn-reverse-traversal');
+      if (revBtn) {
+        revBtn.style.display = (type === 'doubly') ? 'inline-block' : 'none';
+      }
+
+      // Preserve existing node values if present
+      const currentVals = [];
+      if (currentList.head) {
+        let c = currentList.head;
+        let cnt = 0;
+        while (c && cnt < currentList.size) {
+          currentVals.push(c.value);
+          c = c.next;
+          cnt++;
+          if (currentList.type === 'circular' && c === currentList.head) break;
+        }
+      }
+      const values = currentVals.length > 0 ? currentVals : parseValues(document.getElementById('initialValuesInput').value);
+      currentList.buildFromArray(values);
+
+      // Record initial step
+      steps = [{
+        ...currentList.cloneSnapshot({
+          title: `Switched to ${type.toUpperCase()} Linked List`,
+          desc: `Active list type: ${type.toUpperCase()}. Nodes initialized.`,
+          code: `LinkedList list = new ${type === 'singly' ? 'Singly' : type === 'doubly' ? 'Doubly' : 'Circular'}LinkedList();`
+        })
+      }];
+      currentStepIdx = 0;
+      renderCurrentStep();
+    }
+
+    // Switch Operations Tab
+    function selectOperationTab(tab) {
+      // Navbar active
+      document.querySelectorAll('.navbar .nav-link-btn').forEach(btn => {
+        if (!['nav-singly','nav-doubly','nav-circular'].includes(btn.id)) {
+          btn.classList.remove('active');
+        }
+      });
+      const navBtn = document.getElementById(`nav-${tab}`);
+      if (navBtn) navBtn.classList.add('active');
+
+      // Buttons active
+      document.querySelectorAll('.op-tab-btn').forEach(b => b.classList.remove('active'));
+      const tabBtn = document.getElementById(`tab-btn-${tab}`);
+      if (tabBtn) tabBtn.classList.add('active');
+
+      // Content visibility
+      const tabs = ['traversal', 'insertion', 'deletion', 'searching'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`tab-content-${t}`);
+        if (el) el.style.display = (t === tab) ? 'block' : 'none';
+      });
+    }
+
+    // Parse input comma-separated values
+    function parseValues(str) {
+      if (!str || !str.trim()) return [];
+      return str.split(',')
+        .map(v => v.trim())
+        .filter(v => v.length > 0);
+    }
+
+    // Build List Button
+    function handleBuildList() {
+      pausePlayback();
+      const inputVal = document.getElementById('initialValuesInput').value;
+      const values = parseValues(inputVal);
+      currentList.buildFromArray(values);
+
+      steps = [{
+        ...currentList.cloneSnapshot({
+          title: 'List Built',
+          desc: `Linked list initialized with ${values.length} node(s): [${values.join(', ')}]. 0-based indexing ready.`,
+          code: `// Initialized ${values.length} nodes`
+        })
+      }];
+      currentStepIdx = 0;
+      renderCurrentStep();
+    }
+
+    // Randomize List Button
+    function handleRandomizeList() {
+      const count = Math.floor(Math.random() * 4) + 3; // 3 to 6
+      const arr = [];
+      for (let i = 0; i < count; i++) {
+        arr.push(Math.floor(Math.random() * 90) + 10);
+      }
+      document.getElementById('initialValuesInput').value = arr.join(', ');
+      handleBuildList();
+    }
+
+    // Clear List Button
+    function handleClearList() {
+      document.getElementById('initialValuesInput').value = '';
+      handleBuildList();
+    }
+
+    // Start Traversal Button
+    function handleStartTraversal(direction = 'forward') {
+      pausePlayback();
+      steps = generateTraversalSteps(currentList, direction);
+      currentStepIdx = 0;
+      renderCurrentStep();
+      startPlayback();
+    }
+
+    // Start Search Button
+    function handleSearch() {
+      pausePlayback();
+      const target = document.getElementById('searchValueInput').value.trim();
+      if (!target) {
+        alert('Please enter a target value to search.');
+        return;
+      }
+      steps = generateSearchSteps(currentList, target);
+      currentStepIdx = 0;
+      renderCurrentStep();
+      startPlayback();
+    }
+
+    // Handle Insertion
+    function handleInsert(mode) {
+      pausePlayback();
+      const val = document.getElementById('insertValueInput').value.trim();
+      if (!val) {
+        alert('Please enter a value to insert.');
+        return;
+      }
+
+      let pos = 0;
+      if (mode === 'beginning') {
+        pos = 0;
+      } else if (mode === 'end') {
+        pos = currentList.size;
+      } else {
+        // At Position
+        const inputPos = parseInt(document.getElementById('insertPosInput').value, 10);
+        if (isNaN(inputPos) || inputPos < 0 || inputPos > currentList.size) {
+          alert(`Invalid position! Must be between 0 and ${currentList.size} (0-based).`);
+          return;
+        }
+        pos = inputPos;
+      }
+
+      steps = generateInsertSteps(currentList, val, pos);
+      currentStepIdx = 0;
+      renderCurrentStep();
+      startPlayback();
+    }
+
+    // Handle Deletion
+    function handleDelete(mode) {
+      pausePlayback();
+      if (currentList.size === 0) {
+        alert('Cannot delete: Linked list is already empty!');
+        return;
+      }
+
+      let pos = 0;
+      if (mode === 'beginning') {
+        pos = 0;
+      } else if (mode === 'end') {
+        pos = currentList.size - 1;
+      } else {
+        const inputPos = parseInt(document.getElementById('deletePosInput').value, 10);
+        if (isNaN(inputPos) || inputPos < 0 || inputPos >= currentList.size) {
+          alert(`Invalid position! Must be between 0 and ${currentList.size - 1} (0-based).`);
+          return;
+        }
+        pos = inputPos;
+      }
+
+      steps = generateDeleteSteps(currentList, pos);
+      currentStepIdx = 0;
+      renderCurrentStep();
+      startPlayback();
+    }
+
+    // Update Input Range Constraints (0-based)
+    function updateInputConstraints() {
+      const size = currentList.size;
+      document.querySelectorAll('.current-size-display').forEach(el => el.textContent = size);
+      document.querySelectorAll('.max-delete-index-display').forEach(el => el.textContent = Math.max(0, size - 1));
+
+      const insertPos = document.getElementById('insertPosInput');
+      if (insertPos) insertPos.max = size;
+
+      const deletePos = document.getElementById('deletePosInput');
+      if (deletePos) deletePos.max = Math.max(0, size - 1);
+    }
+
+    /* ===================================================
+       8. INITIALIZATION ON PAGE LOAD
+       =================================================== */
+    $(document).ready(function() {
+      // Speed Slider via jQuery UI or HTML5 Range Fallback
+      if (typeof $.fn.slider === 'function') {
+        $("#speed-slider").slider({
+          min: 200,
+          max: 2000,
+          value: 800,
+          slide: function(event, ui) {
+            stepDuration = ui.value;
+            $("#speed-value").text(ui.value + 'ms');
+            if (isPlaying) {
+              pausePlayback();
+              startPlayback();
+            }
+          }
+        });
+      } else {
+        // Fallback
+        const sliderDiv = document.getElementById('speed-slider');
+        sliderDiv.innerHTML = '<input type="range" class="form-range" min="200" max="2000" value="800" step="50" id="fallback-slider">';
+        document.getElementById('fallback-slider').addEventListener('input', function(e) {
+          stepDuration = parseInt(e.target.value, 10);
+          document.getElementById('speed-value').textContent = e.target.value + 'ms';
+          if (isPlaying) {
+            pausePlayback();
+            startPlayback();
+          }
+        });
+      }
+
+      // Build Initial List
+      handleBuildList();
+    });
+  </script>
+</body>
+</html>

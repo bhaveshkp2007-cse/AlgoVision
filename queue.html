@@ -1,0 +1,2879 @@
+<!--
+    ALGOVIS QUEUE VISUALIZER
+    HTML builds the controls and display areas. CSS styles them. JavaScript stores the
+    queue data, applies the algorithms, checks errors, and redraws the display.
+    This file has no separate server, database, or API; its application logic runs in the browser.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoVis - Queue Data Structure Visualizer</title>
+
+    <!-- External libraries provide the icons, Bootstrap helpers, and shared styling used by this page. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <link rel="stylesheet" href="dsa_shared.css">
+
+    <style>
+        * { 
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif; 
+            box-sizing: border-box;
+        }
+        body { 
+            background-color: #000000; 
+            color: white; 
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        .banner { 
+            background-color: #7d39a5; 
+            color: #ffffff; 
+            font-size: 50px; 
+            text-align: center; 
+            padding: 10px 0;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(125, 57, 165, 0.4);
+        }
+        .navbar { 
+            overflow: hidden; 
+            text-align: center; 
+            background-color: rgb(2,2,2); 
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 6px 10px;
+            border-bottom: 2px solid #222;
+        }
+        .navbar a { 
+            float: left; 
+            color: #dddddd; 
+            text-align: center; 
+            text-decoration: none; 
+            padding: 10px 12px; 
+            font-size: 17px; 
+            margin: 3px 4px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .navbar a:hover { 
+            background-color: rgba(172,80,233,0.705); 
+            color: rgb(255,241,241); 
+            transition: transform .10s; 
+            transform: scale(1.06); 
+            border-radius: 20px; 
+        }
+        .navbar a.active { 
+            background-color: #937BEB; 
+            color: #faf1f1; 
+            box-shadow: -5px -5px 10px 1px #6e5dac inset; 
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        /* These classes create the page width, dark cards, section headings, and small labels. */
+        .main-container {
+            max-width: 1300px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .card-dark {
+            background-color: #111111;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .section-header h2 {
+            font-size: 30px;
+            color: #58b7ff;
+            margin: 0;
+        }
+        .badge-custom {
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #222;
+            border: 1px solid #58b7ff;
+            color: #58b7ff;
+        }
+
+        /* These styles keep all inputs and buttons visually consistent across the queue tools. */
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            background: #181818;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 1px solid #282828;
+            margin-bottom: 20px;
+        }
+        .input-dark {
+            background-color: #222222;
+            border: 1px solid #58b7ff;
+            color: #ffffff;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+        }
+        .input-dark:focus {
+            border-color: #937BEB;
+            box-shadow: 0 0 8px rgba(147, 123, 235, 0.5);
+            background-color: #272727;
+            color: #fff;
+        }
+        .btn-action {
+            background: #7d39a5;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-action:hover {
+            background: #937BEB;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(147, 123, 235, 0.4);
+        }
+        .btn-outline-blue {
+            background: transparent;
+            color: #58b7ff;
+            border: 1px solid #58b7ff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-outline-blue:hover {
+            background: #58b7ff;
+            color: #000;
+            font-weight: bold;
+        }
+        .btn-danger-custom {
+            background: #c0392b;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-danger-custom:hover {
+            background: #e74c3c;
+        }
+        .btn-nav-step {
+            background: #2a2a2a;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 7px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .btn-nav-step:hover:not(:disabled) {
+            background: #58b7ff;
+            color: #000;
+            font-weight: bold;
+        }
+        .btn-nav-step:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* These classes draw queue slots and visually identify FRONT, REAR, empty, and filled positions. */
+        .queue-stage {
+            background: #0a0a0a;
+            border: 2px dashed #262626;
+            border-radius: 12px;
+            padding: 40px 20px;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .queue-direction-legend {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 15px;
+            color: #aaa;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .queue-track {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            min-height: 120px;
+            padding: 10px;
+        }
+        .queue-slot {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            min-width: 75px;
+        }
+        .queue-element {
+            width: 75px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            user-select: none;
+            position: relative;
+        }
+        /* Requirements: border 1px solid #58b7ff, background #222 (empty) or #58b7ff (filled/active) */
+        .queue-element.empty {
+            background-color: #222222;
+            border: 1px dashed #58b7ff;
+            color: #666;
+            font-size: 14px;
+        }
+        .queue-element.filled {
+            background-color: #58b7ff;
+            border: 1px solid #58b7ff;
+            color: #000000;
+        }
+        .queue-element.front-highlight {
+            background-color: #ffd700 !important;
+            color: #000 !important;
+            box-shadow: 0 0 18px rgba(255, 215, 0, 0.8) !important;
+            border-color: #ffffff !important;
+            transform: scale(1.08);
+        }
+        .queue-element.rear-highlight {
+            border: 3px solid #b388ff;
+            box-shadow: 0 0 15px rgba(179, 136, 255, 0.7);
+        }
+        .slot-index {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+        .pointer-tag {
+            position: absolute;
+            top: -30px;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 7px;
+            border-radius: 4px;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            animation: bounceIn 0.3s ease;
+        }
+        .tag-front {
+            background: #ffd700;
+            color: #000;
+        }
+        .tag-rear {
+            background: #937BEB;
+            color: #fff;
+        }
+        .tag-both {
+            background: linear-gradient(90deg, #ffd700, #937BEB);
+            color: #000;
+        }
+
+        /* These classes show operation messages in informational, success, warning, or error colours. */
+        .status-alert {
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+        .alert-info-custom {
+            background: rgba(88, 183, 255, 0.15);
+            border: 1px solid #58b7ff;
+            color: #58b7ff;
+        }
+        .alert-error-custom {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        .alert-success-custom {
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        .alert-warning-custom {
+            background: rgba(243, 156, 18, 0.2);
+            border: 1px solid #f39c12;
+            color: #f1c40f;
+        }
+
+        /* These styles arrange the before-state, after-state, operation, and explanation panels. */
+        .step-log-card {
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 15px;
+        }
+        .step-log-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .log-item {
+            background: #1e1e1e;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border-left: 3px solid #58b7ff;
+        }
+        .log-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .log-val {
+            font-size: 16px;
+            color: #fff;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        /* These classes draw linked-list nodes, their next fields, arrows, and the final NULL marker. */
+        .ll-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 30px 10px;
+            overflow-x: auto;
+            min-height: 160px;
+        }
+        .ll-node-box {
+            display: flex;
+            border: 2px solid #58b7ff;
+            border-radius: 8px;
+            background: #1a1a1a;
+            box-shadow: 0 4px 12px rgba(88, 183, 255, 0.2);
+            position: relative;
+        }
+        .ll-data-part {
+            padding: 14px 18px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            border-right: 2px solid #58b7ff;
+            background: #58b7ff;
+            color: #000;
+        }
+        .ll-next-part {
+            padding: 14px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffd700;
+            font-size: 13px;
+            background: #222;
+        }
+        .ll-arrow {
+            font-size: 24px;
+            color: #58b7ff;
+            margin: 0 -8px;
+        }
+        .ll-null {
+            border: 2px dashed #666;
+            padding: 14px 18px;
+            border-radius: 8px;
+            color: #888;
+            font-weight: bold;
+            background: #111;
+        }
+
+        /* This area gives the circular queue diagram a fixed space for its SVG drawing. */
+        .circular-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 10px;
+        }
+        .svg-ring-box {
+            position: relative;
+            width: 360px;
+            height: 360px;
+        }
+
+        /* These styles display each priority item and its priority-level label. */
+        .priority-item {
+            width: 85px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid #58b7ff;
+            background: #222;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .pri-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-top: 4px;
+        }
+        .pri-high {
+            background: #ffd700;
+            color: #000;
+        }
+        .pri-med {
+            background: #58b7ff;
+            color: #000;
+        }
+        .pri-low {
+            background: #937BEB;
+            color: #fff;
+        }
+
+        /* Small animations make status messages and FRONT/REAR labels appear smoothly. */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounceIn {
+            from { opacity: 0; transform: scale(0.6); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* This card highlights the evidence that PEEK reads a value without changing the queue. */
+        .proof-box {
+            background: #151b22;
+            border: 1px solid #238636;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 15px;
+        }
+        .proof-box h5 {
+            color: #3fb950;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        /* These labels explain that a deque supports operations at both ends. */
+        .deque-ends-indicator {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
+        .deque-end-card {
+            background: #1c1c1c;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main title banner for the Queue Visualizer. -->
+    <div class="banner">AlgoVis - Queue Visualizer</div>
+
+    <!-- Navigation links let the user switch between the ten queue demonstrations. -->
+    <div class="navbar">
+        <a href="index.html"><i class="fa fa-home"></i> Home</a>
+        <a href="javascript:showSection('enqueue_dequeue')" id="nav-enqueue_dequeue" class="active">Enqueue & Dequeue</a>
+        <a href="javascript:showSection('peek_front')" id="nav-peek_front">Peek Front</a>
+        <a href="javascript:showSection('is_empty')" id="nav-is_empty">Is Empty</a>
+        <a href="javascript:showSection('is_full')" id="nav-is_full">Is Full</a>
+        <a href="javascript:showSection('single_queue')" id="nav-single_queue">Single Queue</a>
+        <a href="javascript:showSection('deque')" id="nav-deque">Double Ended (Deque)</a>
+        <a href="javascript:showSection('circular_queue')" id="nav-circular_queue">Circular Queue</a>
+        <a href="javascript:showSection('priority_queue')" id="nav-priority_queue">Priority Queue</a>
+        <a href="javascript:showSection('array_impl')" id="nav-array_impl">Array Implementation</a>
+        <a href="javascript:showSection('linked_list_impl')" id="nav-linked_list_impl">Linked List Implementation</a>
+    </div>
+
+    <div class="main-container">
+
+        <!-- ==========================================
+             SECTION 1: ENQUEUE & DEQUEUE (DEFAULT)
+             ========================================== -->
+        <div id="sec-enqueue_dequeue" class="queue-section">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-exchange-alt"></i> Queue Operations (Enqueue & Dequeue)</h2>
+                    <div>
+                        <span class="badge-custom">Mode: Interactive & Scripted</span>
+                        <span class="badge-custom">Order: FIFO</span>
+                    </div>
+                </div>
+
+                <!-- These controls collect a value/capacity and call the matching queue operation. -->
+                <div class="controls-row">
+                    <label>Capacity: 
+                        <input type="number" id="seq-cap-input" class="input-dark" value="6" min="2" max="12" style="width: 70px;">
+                    </label>
+                    <label>Value: 
+                        <input type="text" id="seq-val-input" class="input-dark" value="10" style="width: 90px;">
+                    </label>
+                    <button class="btn-action" onclick="QueueApp.enqueueManual()"><i class="fa fa-plus-circle"></i> Enqueue</button>
+                    <button class="btn-outline-blue" onclick="QueueApp.dequeueManual()"><i class="fa fa-minus-circle"></i> Dequeue</button>
+                    <button class="btn-outline-blue" onclick="QueueApp.peekManual()"><i class="fa fa-eye"></i> Peek Front</button>
+                    <button class="btn-outline-blue" onclick="QueueApp.isEmptyManual()"><i class="fa fa-question-circle"></i> Is Empty?</button>
+                    <button class="btn-outline-blue" onclick="QueueApp.isFullManual()"><i class="fa fa-battery-full"></i> Is Full?</button>
+                    <button class="btn-danger-custom" onclick="QueueApp.resetQueue()"><i class="fa fa-undo"></i> Reset</button>
+                    <button class="btn-action" style="background:#58b7ff; color:#000;" onclick="QueueApp.loadExampleSequence()"><i class="fa fa-bolt"></i> Run Example</button>
+                </div>
+
+                <!-- The user can enter several queue commands here and replay them one step at a time. -->
+                <div class="card-dark" style="background:#161616; border-color:#333; margin-bottom: 20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                        <h5 style="margin:0; color:#58b7ff;"><i class="fa fa-code"></i> Batch Sequence Script</h5>
+                        <small style="color:#aaa;">Commands: ENQUEUE &lt;val&gt;, DEQUEUE, PEEK, ISEMPTY, ISFULL</small>
+                    </div>
+                    <textarea id="sequence-textarea" class="input-dark" rows="4" style="width:100%; font-family: monospace; resize:vertical;">ENQUEUE 10
+ENQUEUE 20
+ENQUEUE 30
+DEQUEUE
+ENQUEUE 40
+PEEK
+DEQUEUE</textarea>
+                    
+                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+                        <button class="btn-action" onclick="QueueApp.executeSequence()"><i class="fa fa-play"></i> Run Sequence</button>
+                        <button class="btn-nav-step" id="btn-seq-prev" onclick="QueueApp.stepPrev()" disabled><i class="fa fa-step-backward"></i> Previous Step</button>
+                        <button class="btn-nav-step" id="btn-seq-next" onclick="QueueApp.stepNext()" disabled>Next Step <i class="fa fa-step-forward"></i></button>
+                        <button class="btn-nav-step" id="btn-seq-play" onclick="QueueApp.toggleAutoPlay()" disabled><i class="fa fa-play"></i> Auto Play</button>
+                        <span id="seq-step-indicator" style="color:#aaa; font-size:14px; margin-left: 10px;">Step: 0 / 0</span>
+                    </div>
+                </div>
+
+                <!-- This message area tells the user whether the last operation worked or failed. -->
+                <div id="seq-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="seq-status-msg">Queue initialized. Ready for operations.</span>
+                </div>
+
+                <!-- JavaScript fills this area with the current queue slots and FRONT/REAR labels. -->
+                <div class="queue-stage">
+                    <div class="queue-direction-legend">
+                        <span><i class="fa fa-arrow-left" style="color:#ffd700;"></i> FRONT (Exit / Dequeue)</span>
+                        <span id="seq-stats-badge" style="color:#58b7ff;">Size: 0 / 6</span>
+                        <span>REAR (Entrance / Enqueue) <i class="fa fa-arrow-right" style="color:#937BEB;"></i></span>
+                    </div>
+                    <div class="queue-track" id="seq-queue-track">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- This panel explains the selected operation by comparing the queue before and after it. -->
+                <div class="step-log-card">
+                    <div style="font-size:18px; color:#58b7ff; font-weight:bold; margin-bottom:8px;">
+                        <i class="fa fa-list-alt"></i> Step Execution Breakdown
+                    </div>
+                    <div class="step-log-grid">
+                        <div class="log-item">
+                            <div class="log-label">Operation</div>
+                            <div class="log-val" id="log-op">None</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-label">Before State</div>
+                            <div class="log-val" id="log-before">[ ]</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-label">After State</div>
+                            <div class="log-val" id="log-after">[ ]</div>
+                        </div>
+                        <div class="log-item" style="grid-column: 1 / -1; border-left-color: #937BEB;">
+                            <div class="log-label">Detailed Explanation</div>
+                            <div class="log-val" id="log-explain" style="font-weight: normal; font-size: 15px; color:#ddd;">Perform an enqueue or run the sequence to view algorithmic execution details.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 2: PEEK FRONT
+             ========================================== -->
+        <div id="sec-peek_front" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-eye"></i> Peek Front Operation</h2>
+                    <span class="badge-custom">Non-Destructive Read (O(1))</span>
+                </div>
+                <p style="color:#bbb; font-size:16px;">
+                    The <strong>PEEK</strong> (or <strong>FRONT</strong>) operation returns the value of the first element in the queue without removing it. The queue size and order remain completely unchanged.
+                </p>
+
+                <div class="controls-row">
+                    <button class="btn-action" style="background:#ffd700; color:#000;" onclick="PeekApp.doPeek()"><i class="fa fa-eye"></i> Peek Front Element</button>
+                    <button class="btn-outline-blue" onclick="PeekApp.enqueueRandom()"><i class="fa fa-plus"></i> Enqueue Random Value</button>
+                    <button class="btn-outline-blue" onclick="PeekApp.dequeueOne()"><i class="fa fa-minus"></i> Dequeue Element</button>
+                    <button class="btn-danger-custom" onclick="PeekApp.reset()"><i class="fa fa-trash"></i> Reset Queue</button>
+                </div>
+
+                <div id="peek-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="peek-status-text">Click "Peek Front Element" to inspect the queue head.</span>
+                </div>
+
+                <div class="queue-stage">
+                    <div class="queue-direction-legend">
+                        <span style="color:#ffd700;">★ FRONT ELEMENT HIGHLIGHTED IN YELLOW</span>
+                        <span id="peek-size-info">Size: 4</span>
+                        <span>REAR</span>
+                    </div>
+                    <div class="queue-track" id="peek-track"></div>
+                </div>
+
+                <!-- This panel demonstrates that PEEK does not remove or reorder an element. -->
+                <div class="proof-box" id="peek-proof-card">
+                    <h5><i class="fa fa-check-circle"></i> Non-Destructive Invariance Proof</h5>
+                    <div id="peek-proof-content" style="color:#ddd; line-height:1.6;">
+                        Perform a peek operation to verify that the element at index 0 is returned while preserving the queue state.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 3: IS EMPTY
+             ========================================== -->
+        <div id="sec-is_empty" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-question-circle"></i> Is Empty Check</h2>
+                    <span class="badge-custom">Condition: size == 0 (or front == -1)</span>
+                </div>
+                <p style="color:#bbb;">
+                    <code>isEmpty()</code> checks whether the queue contains zero elements. Calling <code>DEQUEUE</code> or <code>PEEK</code> on an empty queue causes an <strong>Underflow</strong> error.
+                </p>
+
+                <div class="controls-row">
+                    <button class="btn-action" onclick="IsEmptyApp.checkIsEmpty()"><i class="fa fa-check"></i> Check Is Empty?</button>
+                    <button class="btn-outline-blue" onclick="IsEmptyApp.enqueueItem()"><i class="fa fa-plus"></i> Enqueue Item</button>
+                    <button class="btn-outline-blue" onclick="IsEmptyApp.dequeueItem()"><i class="fa fa-minus"></i> Dequeue Item</button>
+                    <button class="btn-danger-custom" onclick="IsEmptyApp.clearAll()"><i class="fa fa-eraser"></i> Empty Out Queue</button>
+                </div>
+
+                <div id="empty-result-box" class="card-dark" style="background:#181818; text-align:center; padding:30px;">
+                    <div style="font-size:16px; color:#aaa; margin-bottom:8px;">Evaluation Result:</div>
+                    <div id="empty-badge" style="font-size:36px; font-weight:bold; color:#888;">NOT EVALUATED</div>
+                    <p id="empty-explanation" style="color:#ddd; margin-top:12px; font-size:16px;">Click the button above to evaluate queue state.</p>
+                </div>
+
+                <div class="queue-stage">
+                    <div class="queue-track" id="empty-track"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 4: IS FULL
+             ========================================== -->
+        <div id="sec-is_full" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-battery-full"></i> Is Full Check</h2>
+                    <span class="badge-custom">Condition: size == capacity</span>
+                </div>
+                <p style="color:#bbb;">
+                    <code>isFull()</code> determines whether all allocated slots in a bounded/fixed-capacity queue are occupied. Attempting to <code>ENQUEUE</code> when full results in an <strong>Overflow</strong> error.
+                </p>
+
+                <div class="controls-row">
+                    <button class="btn-action" onclick="IsFullApp.checkIsFull()"><i class="fa fa-check"></i> Check Is Full?</button>
+                    <button class="btn-outline-blue" onclick="IsFullApp.enqueueItem()"><i class="fa fa-plus"></i> Enqueue Item</button>
+                    <button class="btn-outline-blue" onclick="IsFullApp.dequeueItem()"><i class="fa fa-minus"></i> Dequeue Item</button>
+                    <button class="btn-action" style="background:#27ae60;" onclick="IsFullApp.fillToMax()"><i class="fa fa-fill-drip"></i> Fill to Max Capacity</button>
+                    <button class="btn-danger-custom" onclick="IsFullApp.clearAll()"><i class="fa fa-trash"></i> Clear Queue</button>
+                </div>
+
+                <!-- These values show the maximum capacity, current number of items, and free slots. -->
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px;">
+                    <div class="card-dark" style="margin:0; text-align:center; background:#161616;">
+                        <span style="color:#aaa; font-size:13px;">CAPACITY (MAX)</span>
+                        <div id="full-stat-cap" style="font-size:28px; color:#58b7ff; font-weight:bold;">5</div>
+                    </div>
+                    <div class="card-dark" style="margin:0; text-align:center; background:#161616;">
+                        <span style="color:#aaa; font-size:13px;">CURRENT SIZE</span>
+                        <div id="full-stat-size" style="font-size:28px; color:#ffd700; font-weight:bold;">3</div>
+                    </div>
+                    <div class="card-dark" style="margin:0; text-align:center; background:#161616;">
+                        <span style="color:#aaa; font-size:13px;">AVAILABLE SLOTS</span>
+                        <div id="full-stat-avail" style="font-size:28px; color:#2ecc71; font-weight:bold;">2</div>
+                    </div>
+                </div>
+
+                <div id="full-result-box" class="card-dark" style="background:#181818; text-align:center; padding:25px;">
+                    <div style="font-size:16px; color:#aaa; margin-bottom:8px;">Evaluation Result:</div>
+                    <div id="full-badge" style="font-size:36px; font-weight:bold; color:#888;">READY</div>
+                    <p id="full-explanation" style="color:#ddd; margin-top:10px; font-size:16px;">Click "Check Is Full?" to verify capacity saturation.</p>
+                </div>
+
+                <div class="queue-stage">
+                    <div class="queue-track" id="full-track"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 5: SINGLE QUEUE (FIFO DEEP DIVE)
+             ========================================== -->
+        <div id="sec-single_queue" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-stream"></i> Single Ended Queue (Strict FIFO Principle)</h2>
+                    <span class="badge-custom">First-In, First-Out Invariant</span>
+                </div>
+                <p style="color:#bbb;">
+                    A Single Ended Queue enforces a strict one-way linear pipeline. New elements enter exclusively at the <strong>REAR</strong> and depart exclusively from the <strong>FRONT</strong>.
+                </p>
+
+                <div class="controls-row">
+                    <input type="text" id="sq-input-val" class="input-dark" value="A" style="width:70px;">
+                    <button class="btn-action" onclick="SingleQueueApp.enqueue()"><i class="fa fa-sign-in-alt"></i> Enqueue at REAR</button>
+                    <button class="btn-outline-blue" onclick="SingleQueueApp.dequeue()"><i class="fa fa-sign-out-alt"></i> Dequeue from FRONT</button>
+                    <button class="btn-action" style="background:#58b7ff; color:#000;" onclick="SingleQueueApp.runFifoDemo()"><i class="fa fa-play"></i> Demonstrate FIFO Order</button>
+                    <button class="btn-danger-custom" onclick="SingleQueueApp.reset()"><i class="fa fa-undo"></i> Reset</button>
+                </div>
+
+                <div id="sq-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="sq-status-text">Enqueue elements to watch the FIFO invariant hold.</span>
+                </div>
+
+                <div class="queue-stage">
+                    <div class="queue-direction-legend">
+                        <span style="color:#ff6b6b;"><i class="fa fa-arrow-left"></i> DEQUEUE ONLY AT FRONT</span>
+                        <span id="sq-count-text">Length: 0</span>
+                        <span style="color:#2ecc71;">ENQUEUE ONLY AT REAR <i class="fa fa-arrow-right"></i></span>
+                    </div>
+                    <div class="queue-track" id="sq-track"></div>
+                </div>
+
+                <!-- This timeline records arrivals and departures so the FIFO rule is easy to verify. -->
+                <div class="step-log-card">
+                    <div style="font-size:17px; color:#58b7ff; font-weight:bold; margin-bottom:8px;">
+                        <i class="fa fa-history"></i> Element Arrival & Departure Timeline (FIFO Proof)
+                    </div>
+                    <div id="sq-timeline" style="font-size:14px; color:#ccc; line-height:1.7;">
+                        No operations yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 6: DOUBLE ENDED (DEQUE)
+             ========================================== -->
+        <div id="sec-deque" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-arrows-alt-h"></i> Double Ended Queue (Deque)</h2>
+                    <span class="badge-custom">Insert & Delete at Both Ends (O(1))</span>
+                </div>
+                <p style="color:#bbb;">
+                    A Double Ended Queue (<strong>Deque</strong>) generalizes the queue structure by permitting insertion and deletion at both the <strong>FRONT</strong> and the <strong>REAR</strong>.
+                </p>
+
+                <!-- Deque controls allow insertion and deletion at either end. -->
+                <div class="controls-row">
+                    <input type="text" id="deque-val-input" class="input-dark" value="50" style="width:80px;" placeholder="Value">
+                    <button class="btn-action" style="background:#00bcd4; color:#000;" onclick="DequeApp.insertFront()"><i class="fa fa-arrow-left"></i> Insert Front</button>
+                    <button class="btn-action" style="background:#937BEB;" onclick="DequeApp.insertRear()"><i class="fa fa-arrow-right"></i> Insert Rear</button>
+                    <button class="btn-outline-blue" onclick="DequeApp.deleteFront()"><i class="fa fa-trash"></i> Delete Front</button>
+                    <button class="btn-outline-blue" onclick="DequeApp.deleteRear()"><i class="fa fa-trash"></i> Delete Rear</button>
+                    <button class="btn-outline-blue" onclick="DequeApp.peekBoth()"><i class="fa fa-eye"></i> Peek Both Ends</button>
+                    <button class="btn-danger-custom" onclick="DequeApp.reset()"><i class="fa fa-undo"></i> Reset</button>
+                    <button class="btn-action" style="background:#58b7ff; color:#000;" onclick="DequeApp.runExample()"><i class="fa fa-bolt"></i> Run Example</button>
+                </div>
+
+                <div id="deque-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="deque-status-text">Deque ready. You can insert or delete from both ends.</span>
+                </div>
+
+                <div class="queue-stage">
+                    <div class="deque-ends-indicator">
+                        <div class="deque-end-card" style="border-color:#00bcd4; color:#00bcd4;">
+                            <i class="fa fa-arrow-left"></i> FRONT END (Insert / Delete)
+                        </div>
+                        <div id="deque-size-indicator" style="color:#aaa; align-self:center;">Size: 0 / 8</div>
+                        <div class="deque-end-card" style="border-color:#937BEB; color:#937BEB;">
+                            REAR END (Insert / Delete) <i class="fa fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="queue-track" id="deque-track"></div>
+                </div>
+
+                <div class="step-log-card">
+                    <div style="color:#58b7ff; font-weight:bold; margin-bottom:5px;">Last Deque Action:</div>
+                    <div id="deque-log" style="color:#ddd; font-size:15px;">No action yet.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 7: CIRCULAR QUEUE
+             ========================================== -->
+        <div id="sec-circular_queue" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-sync-alt"></i> Circular Queue (Ring Buffer)</h2>
+                    <span class="badge-custom">nextIndex = (currentIndex + 1) % capacity</span>
+                </div>
+                <p style="color:#bbb;">
+                    A Circular Queue overcomes linear array memory wastage by logically connecting the last position back to the first. 
+                    <strong>Critical Rule:</strong> A dedicated <code>size</code> counter is maintained to distinguish between the <strong>EMPTY</strong> state (<code>size == 0</code>) and <strong>FULL</strong> state (<code>size == capacity</code>).
+                </p>
+
+                <div class="controls-row">
+                    <input type="text" id="circ-val-input" class="input-dark" value="100" style="width:80px;">
+                    <button class="btn-action" onclick="CircularQueueApp.enqueue()"><i class="fa fa-plus"></i> Enqueue</button>
+                    <button class="btn-outline-blue" onclick="CircularQueueApp.dequeue()"><i class="fa fa-minus"></i> Dequeue</button>
+                    <button class="btn-action" style="background:#e67e22;" onclick="CircularQueueApp.demoWrapAround()"><i class="fa fa-recycle"></i> Demonstrate Wrap-Around</button>
+                    <button class="btn-danger-custom" onclick="CircularQueueApp.reset()"><i class="fa fa-undo"></i> Reset</button>
+                </div>
+
+                <div id="circ-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="circ-status-text">Circular Queue initialized. Capacity = 6.</span>
+                </div>
+
+                <div class="circular-container">
+                    <!-- JavaScript draws the circular arrangement of the buffer inside this SVG element. -->
+                    <div class="card-dark" style="background:#151515; text-align:center;">
+                        <h5 style="color:#58b7ff; margin-bottom:12px;">Circular Ring View</h5>
+                        <div class="svg-ring-box">
+                            <svg id="circ-svg" width="360" height="360" viewBox="0 0 360 360">
+                                <!-- Generated by JS -->
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- This view shows the same circular queue as ordinary indexed array slots. -->
+                    <div class="card-dark" style="background:#151515; flex:1; min-width:320px;">
+                        <h5 style="color:#58b7ff; margin-bottom:10px;">Linear Buffer Mapping with Modulo Wrap</h5>
+                        <div class="queue-track" id="circ-linear-track" style="margin:20px 0;"></div>
+                        
+                        <div class="step-log-card" style="background:#1f1f1f;">
+                            <div style="font-size:14px; color:#aaa; margin-bottom:6px;">MATHEMATICAL STATE:</div>
+                            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; font-size:14px;">
+                                <div><strong>Front Index:</strong> <span id="circ-front-disp" style="color:#ffd700;">-1</span></div>
+                                <div><strong>Rear Index:</strong> <span id="circ-rear-disp" style="color:#937BEB;">-1</span></div>
+                                <div><strong>Count / Size:</strong> <span id="circ-size-disp" style="color:#58b7ff;">0</span></div>
+                                <div><strong>Capacity:</strong> <span style="color:#2ecc71;">6</span></div>
+                            </div>
+                            <div style="margin-top:10px; font-size:13px; color:#ddd; border-top:1px solid #333; padding-top:8px;" id="circ-math-explain">
+                                Formula: <code>rear = (rear + 1) % capacity</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 8: PRIORITY QUEUE
+             ========================================== -->
+        <div id="sec-priority_queue" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-sort-amount-down"></i> Priority Queue Visualizer</h2>
+                    <span class="badge-custom">Rule: Smaller Number = Higher Priority</span>
+                </div>
+                <p style="color:#bbb;">
+                    Each item has a <strong>Value</strong> and a numerical <strong>Priority</strong>. Elements are ordered such that the element with the <strong>smallest priority number</strong> is always serviced first at the FRONT.
+                </p>
+
+                <div class="controls-row">
+                    <label>Value: 
+                        <input type="text" id="pri-val-input" class="input-dark" value="Task A" style="width:110px;">
+                    </label>
+                    <label>Priority (1 = Highest): 
+                        <input type="number" id="pri-num-input" class="input-dark" value="1" min="1" max="9" style="width:70px;">
+                    </label>
+                    <button class="btn-action" onclick="PriorityQueueApp.insert()"><i class="fa fa-plus-circle"></i> Insert with Priority</button>
+                    <button class="btn-outline-blue" onclick="PriorityQueueApp.remove()"><i class="fa fa-minus-circle"></i> Remove Highest Priority</button>
+                    <button class="btn-outline-blue" onclick="PriorityQueueApp.peek()"><i class="fa fa-eye"></i> Peek Highest</button>
+                    <button class="btn-danger-custom" onclick="PriorityQueueApp.reset()"><i class="fa fa-undo"></i> Reset</button>
+                    <button class="btn-action" style="background:#58b7ff; color:#000;" onclick="PriorityQueueApp.runExample()"><i class="fa fa-bolt"></i> Run Example</button>
+                </div>
+
+                <div id="pri-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="pri-status-text">Priority queue ready. Lower priority integer = higher servicing precedence.</span>
+                </div>
+
+                <div class="queue-stage">
+                    <div class="queue-direction-legend">
+                        <span style="color:#ffd700;"><i class="fa fa-crown"></i> HIGHEST PRIORITY (Serviced Next)</span>
+                        <span id="pri-count-text">Items: 0</span>
+                        <span>LOWEST PRIORITY</span>
+                    </div>
+                    <div class="queue-track" id="pri-track"></div>
+                </div>
+
+                <div class="step-log-card">
+                    <div style="color:#58b7ff; font-weight:bold; margin-bottom:6px;">Priority Operations Log:</div>
+                    <div id="pri-log" style="color:#ddd; font-size:15px;">Queue is empty.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 9: ARRAY IMPLEMENTATION
+             ========================================== -->
+        <div id="sec-array_impl" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-th"></i> Fixed Array Implementation & Limitation Demo</h2>
+                    <span class="badge-custom">Fixed Buffer Indices [0 .. n-1]</span>
+                </div>
+                <p style="color:#bbb;">
+                    In a naive linear array implementation, both <code>front</code> and <code>rear</code> move monotonically to the right. 
+                    Once <code>rear == capacity - 1</code>, no more elements can be enqueued—even if multiple elements have been dequeued from the front! This is called <strong>False Overflow</strong>.
+                </p>
+
+                <div class="controls-row">
+                    <input type="text" id="arr-val-input" class="input-dark" value="10" style="width:80px;">
+                    <button class="btn-action" onclick="ArrayQueueApp.enqueue()"><i class="fa fa-plus"></i> Enqueue</button>
+                    <button class="btn-outline-blue" onclick="ArrayQueueApp.dequeue()"><i class="fa fa-minus"></i> Dequeue</button>
+                    <button class="btn-action" style="background:#c0392b;" onclick="ArrayQueueApp.demonstrateLimitation()"><i class="fa fa-exclamation-triangle"></i> Demonstrate Linear Queue Limitation</button>
+                    <button class="btn-danger-custom" onclick="ArrayQueueApp.reset()"><i class="fa fa-undo"></i> Reset</button>
+                </div>
+
+                <div id="arr-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="arr-status-text">Array capacity = 6. Slots are indexed 0 to 5.</span>
+                </div>
+
+                <!-- These labels display the current FRONT and REAR array indices. -->
+                <div style="display:flex; justify-content:center; gap:30px; margin-bottom:15px;">
+                    <div class="badge-custom" style="font-size:16px;">FRONT Pointer: <span id="arr-ptr-front" style="color:#ffd700; font-weight:bold;">-1</span></div>
+                    <div class="badge-custom" style="font-size:16px;">REAR Pointer: <span id="arr-ptr-rear" style="color:#937BEB; font-weight:bold;">-1</span></div>
+                </div>
+
+                <div class="queue-stage">
+                    <div class="queue-track" id="arr-track"></div>
+                </div>
+
+                <!-- This explanation shows why a simple linear array can waste free slots at the beginning. -->
+                <div class="card-dark" style="background:#181818; border-color:#e74c3c;">
+                    <h5 style="color:#ff6b6b;"><i class="fa fa-info-circle"></i> Why Linear Array Queue is Inefficient:</h5>
+                    <p style="color:#ccc; font-size:15px; line-height:1.6; margin:0;" id="arr-limitation-text">
+                        When elements are dequeued, <code>front</code> increments, leaving inactive slots at the beginning of the array. When <code>rear</code> reaches index <code>n - 1</code>, the queue claims to be full even though vacant slots exist at index 0, 1, etc.! Shifting elements to index 0 requires O(N) time. The solution is the <strong>Circular Queue</strong>, which wraps around in O(1) time.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SECTION 10: LINKED LIST IMPLEMENTATION
+             ========================================== -->
+        <div id="sec-linked_list_impl" class="queue-section" style="display:none;">
+            <div class="card-dark">
+                <div class="section-header">
+                    <h2><i class="fa fa-project-diagram"></i> Linked List Implementation (Dynamic Nodes)</h2>
+                    <span class="badge-custom">FRONT -> [Data|Next] -> NULL &lt;- REAR</span>
+                </div>
+                <p style="color:#bbb;">
+                    A Linked List implementation provides dynamic capacity with strictly O(1) Enqueue and Dequeue operations. 
+                    When the last remaining node is dequeued, both <code>FRONT</code> and <code>REAR</code> safely become <code>NULL</code>.
+                </p>
+
+                <div class="controls-row">
+                    <input type="text" id="ll-val-input" class="input-dark" value="10" style="width:80px;">
+                    <button class="btn-action" onclick="LinkedListQueueApp.enqueue()"><i class="fa fa-plus"></i> Enqueue (newNode)</button>
+                    <button class="btn-outline-blue" onclick="LinkedListQueueApp.dequeue()"><i class="fa fa-minus"></i> Dequeue (temp = front)</button>
+                    <button class="btn-outline-blue" onclick="LinkedListQueueApp.peek()"><i class="fa fa-eye"></i> Peek Front</button>
+                    <button class="btn-outline-blue" onclick="LinkedListQueueApp.isEmpty()"><i class="fa fa-question-circle"></i> Is Empty?</button>
+                    <button class="btn-danger-custom" onclick="LinkedListQueueApp.reset()"><i class="fa fa-undo"></i> Reset</button>
+                    <button class="btn-action" style="background:#58b7ff; color:#000;" onclick="LinkedListQueueApp.runExample()"><i class="fa fa-bolt"></i> Run Example</button>
+                </div>
+
+                <div id="ll-status-box" class="status-alert alert-info-custom">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="ll-status-text">Linked list queue initialized. Memory references active.</span>
+                </div>
+
+                <div style="display:flex; justify-content:center; gap:25px; margin-bottom:15px;">
+                    <div class="badge-custom">FRONT = <span id="ll-ptr-front-text" style="color:#ffd700; font-weight:bold;">NULL</span></div>
+                    <div class="badge-custom">REAR = <span id="ll-ptr-rear-text" style="color:#937BEB; font-weight:bold;">NULL</span></div>
+                    <div class="badge-custom">Node Count = <span id="ll-count-text" style="color:#58b7ff; font-weight:bold;">0</span></div>
+                </div>
+
+                <div class="queue-stage" style="align-items: flex-start; padding-left: 30px;">
+                    <div class="ll-container" id="ll-stage">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- JavaScript places a small C++-style pointer explanation here after each linked-list operation. -->
+                <div class="step-log-card">
+                    <div style="color:#58b7ff; font-weight:bold; margin-bottom:5px;">C++ / Java Pointer Mechanism:</div>
+                    <div id="ll-code-explain" style="color:#ccc; font-family: monospace; font-size:14px; background:#111; padding:12px; border-radius:6px;">
+// Initial state:
+Node* front = nullptr;
+Node* rear = nullptr;
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT LOGIC & ALGORITHMIC ENGINES
+         ========================================== -->
+    <script>
+        // Navigation: this function changes which queue lesson is visible.
+        // HOW IT WORKS: The navigation bar calls this with a section name. It clears the previous highlight, hides every topic, shows the chosen topic, refreshes its drawing, and moves the page to the top.
+        function showSection(sectionId) {
+            // Go through every navigation link so the previous active highlight can be removed.
+            document.querySelectorAll('.navbar a').forEach(a => {
+                if (a.id && a.id.startsWith('nav-')) {
+                    // Remove the selected look from this link before marking the new section.
+                    a.classList.remove('active');
+                }
+            });
+            // Find the navigation link whose ID matches the section the user selected.
+            const activeNav = document.getElementById('nav-' + sectionId);
+            // Only if that link exists, give it the active/highlighted appearance.
+            if (activeNav) activeNav.classList.add('active');
+
+            // Hide all content sections first; the next lines will show only the selected one.
+            document.querySelectorAll('.queue-section').forEach(sec => {
+                // Temporarily hide this section so two topics are not displayed together.
+                sec.style.display = 'none';
+            });
+            // Find the content panel that belongs to the selected navigation link.
+            const targetSec = document.getElementById('sec-' + sectionId);
+            // Show the selected panel, provided that its ID was found.
+            if (targetSec) targetSec.style.display = 'block';
+
+            // Rebuild the selected lesson so it shows its latest data.
+            if (sectionId === 'peek_front') PeekApp.render();
+            if (sectionId === 'is_empty') IsEmptyApp.render();
+            if (sectionId === 'is_full') IsFullApp.render();
+            if (sectionId === 'single_queue') SingleQueueApp.render();
+            if (sectionId === 'deque') DequeApp.render();
+            if (sectionId === 'circular_queue') CircularQueueApp.render();
+            if (sectionId === 'priority_queue') PriorityQueueApp.render();
+            if (sectionId === 'array_impl') ArrayQueueApp.render();
+            if (sectionId === 'linked_list_impl') LinkedListQueueApp.render();
+
+            // Move the page back to the top with a smooth scroll after changing topics.
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===================================================
+        // 1. SECTION 1: ENQUEUE & DEQUEUE + SEQUENCE ENGINE
+        // ===================================================
+        const QueueApp = {
+            // This object keeps the data and functions for the Queue demonstration.
+            // The actual queue values, in FIFO order: index 0 is FRONT and the last index is REAR.
+            queue: [],
+            // Maximum number of values allowed in this demonstration.
+            capacity: 6,
+            // Saved snapshots of every scripted operation, used by Previous/Next/Play.
+            steps: [],
+            // Which saved step is currently being shown; -1 means no step has been selected yet.
+            currentStepIndex: -1,
+            // Stores the timer ID while automatic playback is running, or null when stopped.
+            autoPlayInterval: null,
+
+            // HOW IT WORKS: This runs when the page first loads. The queue starts with an empty array, so render() draws the
+            //                empty slots and the initial size on screen.
+            init() {
+                this.render();
+            },
+
+            // HOW IT WORKS: Saves one operation for the step-by-step player. It makes copies of the queue before and after the
+            //                operation, stores the explanation/error details, moves the current step pointer to the newest step,
+            //                and refreshes the step controls.
+            recordStep(op, beforeArr, afterArr, explanation, isError = false, errorMsg = '') {
+                const step = {
+                    op,
+                    before: [...beforeArr],
+                    after: [...afterArr],
+                    explanation,
+                    isError,
+                    errorMsg
+                };
+                // Save this operation in the history so Previous/Next can replay it later.
+                this.steps.push(step);
+                // Move the player pointer to the step that was just saved.
+                this.currentStepIndex = this.steps.length - 1;
+                // Refresh the step buttons and step counter after adding a history entry.
+                this.updateStepUI();
+            },
+
+            // HOW IT WORKS: Handles the Enqueue button. It reads the capacity and typed value, refuses a blank value, checks for
+            //                overflow, and otherwise adds the new value at the rear using push(). It records what changed,
+            //                suggests the next number when the input is numeric, and redraws the queue.
+            enqueueManual() {
+                this.capacity = parseInt(document.getElementById('seq-cap-input').value) || 6;
+                const valInput = document.getElementById('seq-val-input');
+                const val = valInput.value.trim();
+                if (!val) return;
+
+                // Take a copy before changing the queue, so the step log can show the old state.
+                const before = [...this.queue];
+                if (this.queue.length >= this.capacity) {
+                    this.showStatus(`Overflow Error! Queue is FULL (Capacity: ${this.capacity}). Cannot enqueue "${val}".`, 'error');
+                    this.recordStep(`ENQUEUE ${val}`, before, this.queue, `OVERFLOW: Queue capacity (${this.capacity}) reached. Enqueue rejected.`, true, 'Overflow Error');
+                    return;
+                }
+
+                // Add the new value at the rear; push() always appends to the end of this array.
+                this.queue.push(val);
+                this.showStatus(`Enqueued "${val}" successfully at REAR.`, 'success');
+                this.recordStep(
+                    `ENQUEUE ${val}`,
+                    before,
+                    this.queue,
+                    `Enqueued value "${val}" at rear index ${this.queue.length - 1}. Front remains at index 0. Current size: ${this.queue.length}.`
+                );
+
+                // For numeric input, suggest the next value so repeated Enqueue clicks are quicker.
+                if (!isNaN(val)) valInput.value = parseInt(val) + 10;
+                this.render();
+            },
+
+            // HOW IT WORKS: Handles the Dequeue button. An empty queue causes underflow; otherwise shift() removes index 0,
+            //                which is the FRONT. The method records the removed value and redraws the remaining elements.
+            dequeueManual() {
+                // Take a copy before changing the queue, so the step log can show the old state.
+                const before = [...this.queue];
+                if (this.queue.length === 0) {
+                    this.showStatus(`Underflow Error! Queue is EMPTY. Cannot dequeue.`, 'error');
+                    this.recordStep(`DEQUEUE`, before, this.queue, `UNDERFLOW: Queue is empty. Dequeue operation failed.`, true, 'Underflow Error');
+                    return;
+                }
+
+                // Take out index 0, which represents FRONT in this array-based queue.
+                const removed = this.queue.shift();
+                this.showStatus(`Dequeued "${removed}" from FRONT.`, 'success');
+                this.recordStep(
+                    `DEQUEUE`,
+                    before,
+                    this.queue,
+                    `Removed "${removed}" from front index 0. Next elements shift forward. Current size: ${this.queue.length}.`
+                );
+                this.render();
+            },
+
+            // HOW IT WORKS: Looks at queue[0], the FRONT value, without removing it. It records identical before/after states to
+            //                show that PEEK is only a read operation, then briefly highlights the front slot.
+            peekManual() {
+                if (this.queue.length === 0) {
+                    this.showStatus(`Underflow Error! Cannot peek an empty queue.`, 'error');
+                    return;
+                }
+                // Read the value at index 0 because that is the current FRONT.
+                const frontVal = this.queue[0];
+                this.showStatus(`Peek Front: "${frontVal}" (Queue unmodified).`, 'info');
+                this.recordStep(
+                    `PEEK`,
+                    [...this.queue],
+                    [...this.queue],
+                    `Inspected front element: "${frontVal}". State and size (${this.queue.length}) remain unchanged.`
+                );
+                this.highlightFront();
+            },
+
+            // HOW IT WORKS: Checks whether the queue has zero elements. It reports TRUE or FALSE and records the result, but
+            //                does not change the queue.
+            isEmptyManual() {
+                // An array length of zero means there is no element in the queue.
+                const empty = this.queue.length === 0;
+                this.showStatus(`IsEmpty() returned: ${empty ? 'TRUE (Queue is empty)' : 'FALSE (Queue has elements)'}`, empty ? 'warning' : 'info');
+                this.recordStep(`ISEMPTY`, [...this.queue], [...this.queue], `Checked if empty: Result = ${empty}.`);
+            },
+
+            // HOW IT WORKS: Reads the selected capacity and checks whether the number of stored values has reached it. It
+            //                reports whether another enqueue is allowed, without changing the queue.
+            isFullManual() {
+                this.capacity = parseInt(document.getElementById('seq-cap-input').value) || 6;
+                // The queue is full when its number of values has reached the allowed capacity.
+                const full = this.queue.length >= this.capacity;
+                this.showStatus(`IsFull() returned: ${full ? 'TRUE (Queue is full)' : 'FALSE (Available slots: ' + (this.capacity - this.queue.length) + ')'}`, full ? 'error' : 'info');
+                this.recordStep(`ISFULL`, [...this.queue], [...this.queue], `Checked if full: Result = ${full} (${this.queue.length}/${this.capacity}).`);
+            },
+
+            // HOW IT WORKS: Returns this demonstration to a clean starting point: queue and step history are cleared, auto-play
+            //                is stopped, the visualization is redrawn, and the explanation panel is reset.
+            resetQueue() {
+                // Replace the current data with a fresh empty array.
+                this.queue = [];
+                this.steps = [];
+                this.currentStepIndex = -1;
+                this.clearAutoPlay();
+                this.showStatus('Queue has been reset.', 'info');
+                this.render();
+                // Refresh the step buttons and step counter after adding a history entry.
+                this.updateStepUI();
+                document.getElementById('log-op').innerText = 'RESET';
+                document.getElementById('log-before').innerText = '[ ]';
+                document.getElementById('log-after').innerText = '[ ]';
+                document.getElementById('log-explain').innerText = 'Queue cleared to empty state.';
+            },
+
+            // HOW IT WORKS: Reads the batch script one line at a time and simulates its commands on a temporary array. Each
+            //                command creates a saved before/after step, including overflow and underflow errors. At the end, the
+            //                player is set to the initial step so the user can move forward or backward through the run.
+            executeSequence() {
+                this.clearAutoPlay();
+                this.capacity = parseInt(document.getElementById('seq-cap-input').value) || 6;
+                const text = document.getElementById('sequence-textarea').value;
+                // Break the script into separate command lines so each one can be processed independently.
+                const lines = text.split('\n');
+
+                // Replace the current data with a fresh empty array.
+                this.queue = [];
+                this.steps = [];
+
+                // Save step zero first; this is the empty queue before any command is executed.
+                this.steps.push({
+                    op: 'INITIAL',
+                    before: [],
+                    after: [],
+                    explanation: 'Initial empty queue state.',
+                    isError: false
+                });
+
+                let simQueue = [];
+
+                for (let line of lines) {
+                    // Remove spaces at the beginning and end so commands are easier to recognise.
+                    line = line.trim();
+                    // Skip blank lines and lines beginning with # or // because they are notes, not commands.
+                    if (!line || line.startsWith('#') || line.startsWith('//')) continue;
+
+                    // Split this command wherever one or more spaces appear.
+                    const parts = line.split(/\s+/);
+                    // Read the first word as the command and make it uppercase so command matching is case-insensitive.
+                    const cmd = parts[0].toUpperCase();
+                    // Keep everything after the command as its value; joining preserves values containing spaces.
+                    const arg = parts.slice(1).join(' ');
+
+                    // Save the simulated queue before this command so the player can compare both states.
+                    const beforeState = [...simQueue];
+
+                    if (cmd === 'ENQUEUE') {
+                        const val = arg || '0';
+                        if (simQueue.length >= this.capacity) {
+                            this.steps.push({
+                                op: `ENQUEUE ${val}`,
+                                before: beforeState,
+                                after: [...simQueue],
+                                explanation: `OVERFLOW: Queue is full (Capacity: ${this.capacity}). Cannot enqueue "${val}".`,
+                                isError: true,
+                                errorMsg: 'Queue Overflow!'
+                            });
+                        } else {
+                            // Add this value to the back of the temporary queue used for the batch simulation.
+                            simQueue.push(val);
+                            this.steps.push({
+                                op: `ENQUEUE ${val}`,
+                                before: beforeState,
+                                after: [...simQueue],
+                                explanation: `Enqueued "${val}" at rear index ${simQueue.length - 1}. Current size: ${simQueue.length}.`,
+                                isError: false
+                            });
+                        }
+                    } else if (cmd === 'DEQUEUE') {
+                        if (simQueue.length === 0) {
+                            this.steps.push({
+                                op: 'DEQUEUE',
+                                before: beforeState,
+                                after: [],
+                                explanation: 'UNDERFLOW: Cannot dequeue from an empty queue.',
+                                isError: true,
+                                errorMsg: 'Queue Underflow!'
+                            });
+                        } else {
+                            // Remove the oldest value from the temporary queue for the DEQUEUE command.
+                            const rem = simQueue.shift();
+                            this.steps.push({
+                                op: `DEQUEUE (${rem})`,
+                                before: beforeState,
+                                after: [...simQueue],
+                                explanation: `Dequeued "${rem}" from front. Remaining size: ${simQueue.length}.`,
+                                isError: false
+                            });
+                        }
+                    } else if (cmd === 'PEEK') {
+                        if (simQueue.length === 0) {
+                            this.steps.push({
+                                op: 'PEEK',
+                                before: beforeState,
+                                after: [...simQueue],
+                                explanation: 'UNDERFLOW: Cannot peek an empty queue.',
+                                isError: true,
+                                errorMsg: 'Queue Underflow!'
+                            });
+                        } else {
+                            this.steps.push({
+                                op: `PEEK -> ${simQueue[0]}`,
+                                before: beforeState,
+                                after: [...simQueue],
+                                explanation: `Peeked front value: "${simQueue[0]}". Queue unchanged.`,
+                                isError: false
+                            });
+                        }
+                    }
+                }
+
+                // Start the playback at step zero, which is the initial empty queue.
+                this.currentStepIndex = 0;
+                this.applyStep(this.currentStepIndex);
+                // Refresh the step buttons and step counter after adding a history entry.
+                this.updateStepUI();
+                this.showStatus(`Loaded sequence with ${this.steps.length - 1} operations. Use Step / Play controls.`, 'info');
+            },
+
+            // HOW IT WORKS: Places a ready-made set of ENQUEUE, DEQUEUE, and PEEK commands into the text area, then sends that
+            //                text through the same sequence engine as a user-written script.
+            loadExampleSequence() {
+                document.getElementById('sequence-textarea').value = 
+`ENQUEUE 10
+ENQUEUE 20
+ENQUEUE 30
+DEQUEUE
+ENQUEUE 40
+PEEK
+DEQUEUE`;
+                this.executeSequence();
+            },
+
+            // HOW IT WORKS: Moves the step pointer forward only when another saved step exists, then applies that step to the
+            //                queue and display.
+            stepNext() {
+                if (this.currentStepIndex < this.steps.length - 1) {
+                    this.currentStepIndex++;
+                    this.applyStep(this.currentStepIndex);
+                    // Refresh the step buttons and step counter after adding a history entry.
+                    this.updateStepUI();
+                }
+            },
+
+            // HOW IT WORKS: Moves the step pointer backward only when it is not already at the initial state, then restores the
+            //                earlier queue snapshot.
+            stepPrev() {
+                if (this.currentStepIndex > 0) {
+                    this.currentStepIndex--;
+                    this.applyStep(this.currentStepIndex);
+                    // Refresh the step buttons and step counter after adding a history entry.
+                    this.updateStepUI();
+                }
+            },
+
+            // HOW IT WORKS: Takes one saved step and makes its after-state the queue currently shown. It updates the
+            //                operation/before/after/explanation panels, then chooses the correct message style for an error, a
+            //                PEEK, or a normal step.
+            applyStep(index) {
+                const s = this.steps[index];
+                if (!s) return;
+                // Load a copy of this step’s saved after-state as the queue currently being displayed.
+                this.queue = [...s.after];
+                this.render();
+
+                document.getElementById('log-op').innerText = s.op;
+                document.getElementById('log-before').innerText = s.before.length ? `[${s.before.join(', ')}]` : '[ ]';
+                document.getElementById('log-after').innerText = s.after.length ? `[${s.after.join(', ')}]` : '[ ]';
+                document.getElementById('log-explain').innerText = s.explanation;
+
+                if (s.isError) {
+                    this.showStatus(s.explanation, 'error');
+                } else if (s.op.startsWith('PEEK')) {
+                    this.showStatus(s.explanation, 'info');
+                    this.highlightFront();
+                } else {
+                    this.showStatus(`Step ${index}: ${s.op}`, 'info');
+                }
+            },
+
+            // HOW IT WORKS: Keeps the Previous, Next, and Auto Play buttons in sync with the current position. For example,
+            //                Previous is disabled at step 0 and Next is disabled at the final step.
+            updateStepUI() {
+                const hasSteps = this.steps.length > 0;
+                document.getElementById('btn-seq-prev').disabled = !hasSteps || this.currentStepIndex <= 0;
+                document.getElementById('btn-seq-next').disabled = !hasSteps || this.currentStepIndex >= this.steps.length - 1;
+                document.getElementById('btn-seq-play').disabled = !hasSteps;
+                
+                const total = hasSteps ? this.steps.length - 1 : 0;
+                const curr = hasSteps ? this.currentStepIndex : 0;
+                document.getElementById('seq-step-indicator').innerText = `Step: ${curr} / ${total}`;
+            },
+
+            // HOW IT WORKS: Works like a play/pause button. When already playing it stops the timer; otherwise it starts a one-
+            //                second timer that advances one saved step at a time until the sequence ends.
+            toggleAutoPlay() {
+                if (this.autoPlayInterval) {
+                    this.clearAutoPlay();
+                } else {
+                    const playBtn = document.getElementById('btn-seq-play');
+                    playBtn.innerHTML = '<i class="fa fa-pause"></i> Pause';
+                    this.autoPlayInterval = setInterval(() => {
+                        if (this.currentStepIndex < this.steps.length - 1) {
+                            this.stepNext();
+                        } else {
+                            this.clearAutoPlay();
+                        }
+                    }, 1000);
+                }
+            },
+
+            // HOW IT WORKS: Stops the running timer, clears its stored ID, and changes the button label back to Auto Play. This
+            //                prevents an old sequence from continuing after reset or a new run.
+            clearAutoPlay() {
+                if (this.autoPlayInterval) {
+                    clearInterval(this.autoPlayInterval);
+                    this.autoPlayInterval = null;
+                }
+                const playBtn = document.getElementById('btn-seq-play');
+                if (playBtn) playBtn.innerHTML = '<i class="fa fa-play"></i> Auto Play';
+            },
+
+            // HOW IT WORKS: Finds the first filled queue box, adds the yellow FRONT highlight, and removes that highlight after
+            //                1.5 seconds.
+            highlightFront() {
+                const frontEl = document.querySelector('#seq-queue-track .queue-element.filled');
+                if (frontEl) {
+                    frontEl.classList.add('front-highlight');
+                    setTimeout(() => frontEl.classList.remove('front-highlight'), 1500);
+                }
+            },
+
+            // HOW IT WORKS: Updates the message box below the controls. The message text and CSS class are changed together so
+            //                the user can distinguish information, success, warning, and error results.
+            showStatus(msg, type = 'info') {
+                const box = document.getElementById('seq-status-box');
+                const text = document.getElementById('seq-status-msg');
+                box.className = 'status-alert';
+                if (type === 'error') {
+                    box.classList.add('alert-error-custom');
+                    box.innerHTML = `<i class="fa fa-exclamation-triangle"></i> <span>${msg}</span>`;
+                } else if (type === 'success') {
+                    box.classList.add('alert-success-custom');
+                    box.innerHTML = `<i class="fa fa-check-circle"></i> <span>${msg}</span>`;
+                } else if (type === 'warning') {
+                    box.classList.add('alert-warning-custom');
+                    box.innerHTML = `<i class="fa fa-bell"></i> <span>${msg}</span>`;
+                } else {
+                    box.classList.add('alert-info-custom');
+                    box.innerHTML = `<i class="fa fa-info-circle"></i> <span>${msg}</span>`;
+                }
+            },
+
+            // HOW IT WORKS: Rebuilds the main queue drawing from the current array. It clears the old drawing, updates the
+            //                size/capacity label, creates one slot per capacity position, adds FRONT/REAR tags where needed, and
+            //                marks each slot as filled or empty.
+            render() {
+                this.capacity = parseInt(document.getElementById('seq-cap-input').value) || 6;
+                const track = document.getElementById('seq-queue-track');
+                track.innerHTML = '';
+                document.getElementById('seq-stats-badge').innerText = `Size: ${this.queue.length} / ${this.capacity}`;
+
+                for (let i = 0; i < this.capacity; i++) {
+                    const isOccupied = i < this.queue.length;
+                    const val = isOccupied ? this.queue[i] : 'Empty';
+
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    // Add labels above the cells currently pointed to by FRONT and REAR.
+                    if (this.queue.length > 0) {
+                        if (i === 0 && i === this.queue.length - 1) {
+                            slot.innerHTML += `<div class="pointer-tag tag-both">FRONT & REAR</div>`;
+                        } else if (i === 0) {
+                            slot.innerHTML += `<div class="pointer-tag tag-front">FRONT</div>`;
+                        } else if (i === this.queue.length - 1) {
+                            slot.innerHTML += `<div class="pointer-tag tag-rear">REAR</div>`;
+                        }
+                    }
+
+                    const el = document.createElement('div');
+                    el.className = `queue-element ${isOccupied ? 'filled' : 'empty'}`;
+                    el.innerText = val;
+
+                    const indexLabel = document.createElement('div');
+                    indexLabel.className = 'slot-index';
+                    indexLabel.innerText = `[${i}]`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(indexLabel);
+                    track.appendChild(slot);
+                }
+            }
+        };
+
+        // ===================================================
+        // 2. SECTION 2: PEEK FRONT
+        // ===================================================
+        const PeekApp = {
+            // This object keeps the data and functions for the Peek demonstration.
+            // A sample queue used only in the PEEK lesson.
+            queue: ['15', '30', '45', '60'],
+
+            // HOW IT WORKS: Redraws the sample queue for the PEEK topic. It shows the current size, displays an empty message
+            //                when there are no elements, and otherwise draws each value while marking index 0 as the FRONT.
+            render() {
+                const track = document.getElementById('peek-track');
+                track.innerHTML = '';
+                document.getElementById('peek-size-info').innerText = `Size: ${this.queue.length}`;
+
+                if (this.queue.length === 0) {
+                    track.innerHTML = '<span style="color:#666; font-size:18px;">(Queue is empty - Cannot peek)</span>';
+                    return;
+                }
+
+                // Visit each stored value and create one visual slot for it.
+                this.queue.forEach((val, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    if (idx === 0) {
+                        slot.innerHTML += `<div class="pointer-tag tag-front" style="top:-32px;">PEEK TARGET (FRONT)</div>`;
+                    }
+
+                    const el = document.createElement('div');
+                    el.className = `queue-element filled ${idx === 0 ? 'front-highlight' : ''}`;
+                    el.innerText = val;
+
+                    const idxLabel = document.createElement('div');
+                    idxLabel.className = 'slot-index';
+                    idxLabel.innerText = `Index ${idx}`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(idxLabel);
+                    track.appendChild(slot);
+                });
+            },
+
+            // HOW IT WORKS: Performs the actual PEEK demonstration. It first rejects an empty queue; otherwise it reads the
+            //                first value, takes before/after snapshots, displays the result, and proves that both snapshots have
+            //                the same contents and size.
+            doPeek() {
+                const box = document.getElementById('peek-status-box');
+                const text = document.getElementById('peek-status-text');
+                const proofCard = document.getElementById('peek-proof-content');
+
+                if (this.queue.length === 0) {
+                    box.className = 'status-alert alert-error-custom';
+                    box.innerHTML = `<i class="fa fa-exclamation-triangle"></i> <span>Underflow Error! Cannot peek an empty queue.</span>`;
+                    proofCard.innerHTML = `<span style="color:#ff6b6b;">Error: Queue contains 0 elements. Peek operation rejected.</span>`;
+                    return;
+                }
+
+                const beforeState = [...this.queue];
+                const frontValue = this.queue[0];
+                const afterState = [...this.queue];
+
+                box.className = 'status-alert alert-success-custom';
+                box.innerHTML = `<i class="fa fa-check-circle"></i> <span>Peek Successful: FRONT element is <strong>"${frontValue}"</strong>.</span>`;
+
+                proofCard.innerHTML = `
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px; margin-bottom:10px;">
+                        <div><strong>Before Peek:</strong> [${beforeState.join(', ')}] (Size: ${beforeState.length})</div>
+                        <div><strong>Peeked Value:</strong> <span style="color:#ffd700; font-weight:bold;">${frontValue}</span></div>
+                        <div><strong>After Peek:</strong> [${afterState.join(', ')}] (Size: ${afterState.length})</div>
+                    </div>
+                    <div style="background:#0d1117; padding:8px 12px; border-radius:6px; color:#58b7ff;">
+                        <i class="fa fa-shield-alt"></i> <strong>Immutability Verified:</strong> Queue size (${beforeState.length} == ${afterState.length}) and element ordering did not change. Peek is strictly a non-destructive read.
+                    </div>
+                `;
+
+                this.render();
+            },
+
+            // HOW IT WORKS: Creates a random two-digit value, adds it at the rear, redraws the queue, and tells the user what
+            //                was added.
+            enqueueRandom() {
+                const rand = Math.floor(Math.random() * 90) + 10;
+                this.queue.push(rand.toString());
+                this.render();
+                document.getElementById('peek-status-box').innerHTML = `<i class="fa fa-info-circle"></i> <span>Enqueued ${rand}. Click Peek to inspect front.</span>`;
+            },
+
+            // HOW IT WORKS: Removes the front value only when the queue is non-empty, then redraws the queue and reports which
+            //                value left.
+            dequeueOne() {
+                if (this.queue.length > 0) {
+                    const rem = this.queue.shift();
+                    this.render();
+                    document.getElementById('peek-status-box').innerHTML = `<i class="fa fa-info-circle"></i> <span>Dequeued ${rem}. Front is now ${this.queue[0] || 'none'}.</span>`;
+                }
+            },
+
+            // HOW IT WORKS: Clears the PEEK example queue, redraws the empty state, and updates the message.
+            reset() {
+                // Replace the current data with a fresh empty array.
+                this.queue = [];
+                this.render();
+                document.getElementById('peek-status-box').innerHTML = `<i class="fa fa-info-circle"></i> <span>Queue emptied.</span>`;
+            }
+        };
+
+        // ===================================================
+        // 3. SECTION 3: IS EMPTY
+        // ===================================================
+        const IsEmptyApp = {
+            // This object keeps the data and functions for the IsEmpty demonstration.
+            // Sample values used to demonstrate the empty/not-empty condition.
+            queue: ['10', '20'],
+
+            // HOW IT WORKS: Draws the current items for the Is Empty lesson. It first clears the old drawing, handles the empty
+            //                case, and otherwise creates one visual box per value.
+            render() {
+                const track = document.getElementById('empty-track');
+                track.innerHTML = '';
+                if (this.queue.length === 0) {
+                    track.innerHTML = '<span style="color:#888; font-size:18px;">(Queue is empty: 0 elements)</span>';
+                    return;
+                }
+                this.queue.forEach((v, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+                    const el = document.createElement('div');
+                    el.className = 'queue-element filled';
+                    el.innerText = v;
+                    slot.appendChild(el);
+                    track.appendChild(slot);
+                });
+            },
+
+            // HOW IT WORKS: Evaluates queue.length === 0 and displays TRUE when no elements exist or FALSE when at least one
+            //                element remains. It also explains what that result means for dequeue and peek.
+            checkIsEmpty() {
+                const badge = document.getElementById('empty-badge');
+                const expl = document.getElementById('empty-explanation');
+                // An array length of zero means there is no element in the queue.
+                const empty = this.queue.length === 0;
+
+                if (empty) {
+                    badge.innerText = 'TRUE';
+                    badge.style.color = '#e74c3c';
+                    expl.innerHTML = `<strong style="color:#e74c3c;">The queue is completely EMPTY (size = 0).</strong><br>Both <code>front</code> and <code>rear</code> pointers are at -1 (or NULL). Dequeue or Peek would trigger an <strong>Underflow Error</strong>.`;
+                } else {
+                    badge.innerText = 'FALSE';
+                    badge.style.color = '#2ecc71';
+                    expl.innerHTML = `<strong style="color:#2ecc71;">The queue is NOT empty.</strong> Current size is <strong>${this.queue.length}</strong>. Elements can safely be read or dequeued. Front element is "${this.queue[0]}".`;
+                }
+            },
+
+            // HOW IT WORKS: Adds the next sample number at the rear, redraws the queue, and immediately checks the new
+            //                empty/not-empty result.
+            enqueueItem() {
+                this.queue.push((this.queue.length * 10 + 10).toString());
+                this.render();
+                this.checkIsEmpty();
+            },
+
+            // HOW IT WORKS: Removes the front item only if one exists, then redraws and checks whether the queue became empty.
+            dequeueItem() {
+                if (this.queue.length > 0) {
+                    this.queue.shift();
+                    this.render();
+                    this.checkIsEmpty();
+                }
+            },
+
+            // HOW IT WORKS: Replaces the queue with an empty array, redraws it, and displays the TRUE result of the empty check.
+            clearAll() {
+                // Replace the current data with a fresh empty array.
+                this.queue = [];
+                this.render();
+                this.checkIsEmpty();
+            }
+        };
+
+        // ===================================================
+        // 4. SECTION 4: IS FULL
+        // ===================================================
+        const IsFullApp = {
+            // This object keeps the data and functions for the IsFull demonstration.
+            // The fixed number of slots available in this lesson.
+            capacity: 5,
+            // The starting sample values; two slots are initially free.
+            queue: ['A', 'B', 'C'],
+
+            // HOW IT WORKS: Updates the three capacity statistics and redraws every available slot. Slots containing values
+            //                appear filled; the remaining positions are shown as free.
+            render() {
+                document.getElementById('full-stat-cap').innerText = this.capacity;
+                document.getElementById('full-stat-size').innerText = this.queue.length;
+                document.getElementById('full-stat-avail').innerText = this.capacity - this.queue.length;
+
+                const track = document.getElementById('full-track');
+                track.innerHTML = '';
+
+                for (let i = 0; i < this.capacity; i++) {
+                    const isOccupied = i < this.queue.length;
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    const el = document.createElement('div');
+                    el.className = `queue-element ${isOccupied ? 'filled' : 'empty'}`;
+                    el.innerText = isOccupied ? this.queue[i] : 'Free';
+
+                    const idx = document.createElement('div');
+                    idx.className = 'slot-index';
+                    idx.innerText = `Slot ${i}`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(idx);
+                    track.appendChild(slot);
+                }
+            },
+
+            // HOW IT WORKS: Compares the current item count with the fixed capacity. It displays TRUE when every slot is used
+            //                and FALSE when there is still room, including the number of free slots.
+            checkIsFull() {
+                const badge = document.getElementById('full-badge');
+                const expl = document.getElementById('full-explanation');
+                // The queue is full when its number of values has reached the allowed capacity.
+                const full = this.queue.length >= this.capacity;
+
+                if (full) {
+                    badge.innerText = 'TRUE';
+                    badge.style.color = '#e74c3c';
+                    expl.innerHTML = `<strong style="color:#e74c3c;">The queue is FULL (Size: ${this.queue.length} / ${this.capacity}).</strong><br>All available memory slots are saturated. Any further ENQUEUE attempt will trigger an <strong>Overflow Error</strong>.`;
+                } else {
+                    badge.innerText = 'FALSE';
+                    badge.style.color = '#2ecc71';
+                    expl.innerHTML = `<strong style="color:#2ecc71;">The queue is NOT full.</strong> Occupied: ${this.queue.length} / ${this.capacity}. Available slots: <strong>${this.capacity - this.queue.length}</strong>. Enqueue can proceed.`;
+                }
+            },
+
+            // HOW IT WORKS: Adds the next sample letter only if the queue still has space. When full, it rejects the operation
+            //                and reports overflow.
+            enqueueItem() {
+                if (this.queue.length < this.capacity) {
+                    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+                    this.queue.push(letters[this.queue.length % letters.length]);
+                    this.render();
+                    this.checkIsFull();
+                } else {
+                    alert('Queue is already full! Enqueue rejected (Overflow).');
+                }
+            },
+
+            // HOW IT WORKS: Removes the first item if one exists, then refreshes the slots and recalculates whether the queue is
+            //                full.
+            dequeueItem() {
+                if (this.queue.length > 0) {
+                    this.queue.shift();
+                    this.render();
+                    this.checkIsFull();
+                }
+            },
+
+            // HOW IT WORKS: Keeps adding letters until the queue length equals capacity. The loop stops automatically when there
+            //                are no free slots left.
+            fillToMax() {
+                while (this.queue.length < this.capacity) {
+                    this.queue.push(String.fromCharCode(65 + this.queue.length));
+                }
+                this.render();
+                this.checkIsFull();
+            },
+
+            // HOW IT WORKS: Empties the queue completely, redraws all slots as free, and updates the full check.
+            clearAll() {
+                // Replace the current data with a fresh empty array.
+                this.queue = [];
+                this.render();
+                this.checkIsFull();
+            }
+        };
+
+        // ===================================================
+        // 5. SECTION 5: SINGLE QUEUE (FIFO DEEP DIVE)
+        // ===================================================
+        const SingleQueueApp = {
+            // This object keeps the data and functions for the Single Queue demonstration.
+            // Items waiting in FIFO order; first item is at FRONT.
+            queue: ['Doc-1', 'Doc-2', 'Doc-3'],
+            // Human-readable arrival/departure messages shown in the timeline.
+            history: [],
+
+            // HOW IT WORKS: Draws the single-ended FIFO queue, updates its length, and marks the first item as FRONT and the
+            //                last item as REAR.
+            render() {
+                const track = document.getElementById('sq-track');
+                track.innerHTML = '';
+                document.getElementById('sq-count-text').innerText = `Length: ${this.queue.length}`;
+
+                if (this.queue.length === 0) {
+                    track.innerHTML = '<span style="color:#666;">(Queue is empty)</span>';
+                    return;
+                }
+
+                // Visit each stored value and create one visual slot for it.
+                this.queue.forEach((val, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    if (idx === 0) slot.innerHTML += `<div class="pointer-tag tag-front">FRONT</div>`;
+                    if (idx === this.queue.length - 1 && idx !== 0) slot.innerHTML += `<div class="pointer-tag tag-rear">REAR</div>`;
+
+                    const el = document.createElement('div');
+                    el.className = 'queue-element filled';
+                    el.innerText = val;
+
+                    const lbl = document.createElement('div');
+                    lbl.className = 'slot-index';
+                    lbl.innerText = `Pos ${idx}`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(lbl);
+                    track.appendChild(slot);
+                });
+            },
+
+            // HOW IT WORKS: Reads the typed value and appends it to the rear with push(). It also records the arrival in the
+            //                timeline, displays a FIFO message, and redraws the queue.
+            enqueue() {
+                const input = document.getElementById('sq-input-val');
+                const val = input.value.trim() || 'Item';
+                // Add the new value at the rear; push() always appends to the end of this array.
+                this.queue.push(val);
+                this.addHistory(`ENQUEUE: "${val}" inserted at REAR. (Queue size: ${this.queue.length})`);
+                this.showStatus(`"${val}" entered at rear. First-In, First-Out maintained.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Checks for underflow first. If an item exists, shift() removes the front item; the departure is
+            //                added to the history and the updated queue is drawn.
+            dequeue() {
+                if (this.queue.length === 0) {
+                    this.showStatus('Cannot dequeue from empty queue!', true);
+                    return;
+                }
+                const rem = this.queue.shift();
+                this.addHistory(`DEQUEUE: "${rem}" served and departed from FRONT. (Remaining: ${this.queue.length})`);
+                this.showStatus(`Served "${rem}" from front. Remaining: ${this.queue.length}.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Runs an animated FIFO example. It first clears the old queue, adds three items one after another
+            //                using timers, and then removes them in that same order so arrival and departure order can be
+            //                compared.
+            runFifoDemo() {
+                // Replace the current data with a fresh empty array.
+                this.queue = [];
+                this.history = [];
+                this.render();
+
+                const items = ['First (1)', 'Second (2)', 'Third (3)'];
+                let delay = 0;
+
+                items.forEach((item, i) => {
+                    setTimeout(() => {
+                        this.queue.push(item);
+                        this.addHistory(`ARRIVAL #${i+1}: "${item}" arrived at REAR.`);
+                        this.render();
+                    }, delay);
+                    delay += 800;
+                });
+
+                // Now remove the same three items from FRONT, one at a time, to prove FIFO order.
+                setTimeout(() => {
+                    this.showStatus('Now dequeuing items. Notice departure order exactly matches arrival order!');
+                }, delay);
+                delay += 800;
+
+                items.forEach((item, i) => {
+                    setTimeout(() => {
+                        const rem = this.queue.shift();
+                        this.addHistory(`DEPARTURE #${i+1}: "${rem}" departed from FRONT.`);
+                        this.render();
+                    }, delay);
+                    delay += 800;
+                });
+            },
+
+            // HOW IT WORKS: Adds one sentence to the history array, then rebuilds the timeline so the latest arrival/departure
+            //                appears on screen.
+            addHistory(msg) {
+                this.history.push(msg);
+                const timeline = document.getElementById('sq-timeline');
+                timeline.innerHTML = this.history.map(h => `<div>• ${h}</div>`).join('');
+            },
+
+            // HOW IT WORKS: Changes the status message and chooses either the normal information style or the error style.
+            showStatus(msg, isError = false) {
+                const box = document.getElementById('sq-status-box');
+                box.className = isError ? 'status-alert alert-error-custom' : 'status-alert alert-info-custom';
+                box.innerHTML = `<i class="fa fa-${isError ? 'exclamation-triangle' : 'info-circle'}"></i> <span>${msg}</span>`;
+            },
+
+            // HOW IT WORKS: Clears both the queue and its operation history, redraws the empty queue, and replaces the timeline
+            //                with a reset message.
+            reset() {
+                // Replace the current data with a fresh empty array.
+                this.queue = [];
+                this.history = [];
+                this.render();
+                document.getElementById('sq-timeline').innerHTML = 'Queue reset.';
+            }
+        };
+
+        // ===================================================
+        // 6. SECTION 6: DOUBLE ENDED (DEQUE)
+        // ===================================================
+        const DequeApp = {
+            // This object keeps the data and functions for the Deque demonstration.
+            // Deque contents; both the first and last positions can be changed.
+            deque: ['20', '30', '40'],
+            // Maximum number of items allowed in this deque example.
+            capacity: 8,
+
+            // HOW IT WORKS: Redraws the deque and its size. Unlike a normal queue, this view labels both ends because insertion
+            //                and deletion are allowed at FRONT and REAR.
+            render() {
+                const track = document.getElementById('deque-track');
+                track.innerHTML = '';
+                document.getElementById('deque-size-indicator').innerText = `Size: ${this.deque.length} / ${this.capacity}`;
+
+                if (this.deque.length === 0) {
+                    track.innerHTML = '<span style="color:#888;">(Deque is empty)</span>';
+                    return;
+                }
+
+                this.deque.forEach((val, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    if (idx === 0 && idx === this.deque.length - 1) {
+                        slot.innerHTML += `<div class="pointer-tag tag-both">FRONT & REAR</div>`;
+                    } else if (idx === 0) {
+                        slot.innerHTML += `<div class="pointer-tag tag-front" style="background:#00bcd4; color:#000;">FRONT</div>`;
+                    } else if (idx === this.deque.length - 1) {
+                        slot.innerHTML += `<div class="pointer-tag tag-rear" style="background:#937BEB; color:#fff;">REAR</div>`;
+                    }
+
+                    const el = document.createElement('div');
+                    el.className = 'queue-element filled';
+                    el.innerText = val;
+                    if (idx === 0) el.style.borderColor = '#00bcd4';
+                    if (idx === this.deque.length - 1) el.style.borderColor = '#937BEB';
+
+                    const idxLabel = document.createElement('div');
+                    idxLabel.className = 'slot-index';
+                    idxLabel.innerText = `[${idx}]`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(idxLabel);
+                    track.appendChild(slot);
+                });
+            },
+
+            // HOW IT WORKS: Reads a value, checks capacity, and uses unshift() to place it at index 0. If no space is available,
+            //                it reports overflow instead.
+            insertFront() {
+                const val = document.getElementById('deque-val-input').value.trim() || '10';
+                if (this.deque.length >= this.capacity) {
+                    this.showStatus('Overflow Error! Deque capacity limit reached.', true);
+                    return;
+                }
+                // Insert at index 0, which makes the new value the FRONT of the deque.
+                this.deque.unshift(val);
+                this.logAction(`INSERT FRONT: Added "${val}" at the head of the Deque.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Reads a value, checks capacity, and uses push() to add it after the current last item. It then logs
+            //                and redraws the deque.
+            insertRear() {
+                const val = document.getElementById('deque-val-input').value.trim() || '99';
+                if (this.deque.length >= this.capacity) {
+                    this.showStatus('Overflow Error! Deque capacity limit reached.', true);
+                    return;
+                }
+                // Append the new value at the REAR of the deque.
+                this.deque.push(val);
+                this.logAction(`INSERT REAR: Appended "${val}" at the tail of the Deque.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Rejects deletion when empty; otherwise shift() removes the first item. The removed value is logged
+            //                and the deque is redrawn.
+            deleteFront() {
+                if (this.deque.length === 0) {
+                    this.showStatus('Underflow Error! Deque is empty.', true);
+                    return;
+                }
+                const rem = this.deque.shift();
+                this.logAction(`DELETE FRONT: Removed "${rem}" from the front end.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Rejects deletion when empty; otherwise pop() removes the last item. The removed value is logged and
+            //                the deque is redrawn.
+            deleteRear() {
+                if (this.deque.length === 0) {
+                    this.showStatus('Underflow Error! Deque is empty.', true);
+                    return;
+                }
+                const rem = this.deque.pop();
+                this.logAction(`DELETE REAR: Removed "${rem}" from the rear end.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Reads index 0 and the last index to show both end values. It does not remove either value.
+            peekBoth() {
+                if (this.deque.length === 0) {
+                    this.showStatus('Cannot peek an empty Deque.', true);
+                    return;
+                }
+                const f = this.deque[0];
+                const r = this.deque[this.deque.length - 1];
+                this.showStatus(`Peek Result -> FRONT: "${f}" | REAR: "${r}".`);
+            },
+
+            // HOW IT WORKS: Loads a short demonstration and performs six front/rear insertions and deletions at timed intervals.
+            //                Each interval applies one operation, logs it, and redraws the deque.
+            runExample() {
+                this.deque = [];
+                this.render();
+                const sequence = [
+                    () => this.deque.push('20'),
+                    () => this.deque.unshift('10'),
+                    () => this.deque.push('30'),
+                    () => this.deque.unshift('5'),
+                    () => this.deque.pop(),
+                    () => this.deque.shift()
+                ];
+                const labels = [
+                    'Insert Rear 20',
+                    'Insert Front 10',
+                    'Insert Rear 30',
+                    'Insert Front 5',
+                    'Delete Rear (30)',
+                    'Delete Front (5)'
+                ];
+                let i = 0;
+                const interval = setInterval(() => {
+                    if (i < sequence.length) {
+                        sequence[i]();
+                        this.logAction(`Example Step: ${labels[i]}`);
+                        this.render();
+                        i++;
+                    } else {
+                        clearInterval(interval);
+                    }
+                }, 900);
+            },
+
+            // HOW IT WORKS: Writes the latest action into the log panel and repeats it in the status message.
+            logAction(text) {
+                document.getElementById('deque-log').innerText = text;
+                this.showStatus(text);
+            },
+
+            // HOW IT WORKS: Displays a normal or error message by updating the status box's text, icon, and CSS class.
+            showStatus(msg, isError = false) {
+                const box = document.getElementById('deque-status-box');
+                box.className = isError ? 'status-alert alert-error-custom' : 'status-alert alert-info-custom';
+                box.innerHTML = `<i class="fa fa-${isError ? 'exclamation-triangle' : 'info-circle'}"></i> <span>${msg}</span>`;
+            },
+
+            // HOW IT WORKS: Empties the deque, redraws the empty state, and records that the deque was cleared.
+            reset() {
+                this.deque = [];
+                this.render();
+                this.logAction('Deque cleared.');
+            }
+        };
+
+        // ===================================================
+        // 7. SECTION 7: CIRCULAR QUEUE
+        // ===================================================
+        const CircularQueueApp = {
+            // This object keeps the data and functions for the Circular Queue demonstration.
+            // Number of positions in the circular buffer.
+            capacity: 6,
+            // Six slots; null means that a slot is currently empty.
+            buffer: new Array(6).fill(null),
+            // Current FRONT index; -1 means there is no item in the queue.
+            front: -1,
+            // Current REAR index; -1 means there is no item in the queue.
+            rear: -1,
+            // Tracks how many slots are occupied, so empty and full are never confused.
+            size: 0, // CRITICAL RULE: Circular queue uses size counter to distinguish empty/full
+
+            // HOW IT WORKS: Draws the initial circular buffer, where all six positions are empty and FRONT/REAR are -1.
+            init() {
+                this.render();
+            },
+
+            // HOW IT WORKS: Adds a value to the circular buffer. It rejects a full queue; for the first item it sets FRONT and
+            //                REAR to 0, otherwise it advances REAR with modulo so the index wraps back to 0 after the last slot.
+            //                It stores the value, increases size, explains the calculation, and redraws both views.
+            enqueue() {
+                const val = document.getElementById('circ-val-input').value.trim() || '10';
+
+                // Stop here if every buffer position is already occupied.
+                if (this.size === this.capacity) {
+                    this.showStatus(`Overflow Error! Circular queue is FULL (size: ${this.size} == capacity: ${this.capacity}).`, true);
+                    return;
+                }
+
+                if (this.size === 0) {
+                    this.front = 0;
+                    this.rear = 0;
+                } else {
+                    // Advance REAR by one; modulo makes it return to index 0 after the final array slot.
+                    this.rear = (this.rear + 1) % this.capacity;
+                }
+
+                // Store the new value in the buffer position currently pointed to by REAR.
+                this.buffer[this.rear] = val;
+                // Increase the number of stored values after a successful enqueue.
+                this.size++;
+
+                this.showStatus(`Enqueued "${val}" at index ${this.rear}. rear = (${(this.rear - 1 + this.capacity) % this.capacity} + 1) % ${this.capacity} = ${this.rear}.`);
+                document.getElementById('circ-math-explain').innerHTML = `
+                    Enqueued <strong>${val}</strong> at index <strong>${this.rear}</strong>.<br>
+                    Calculated: <code>rear = (previousRear + 1) % capacity = ${this.rear}</code>. Current Size: ${this.size}/${this.capacity}.
+                `;
+                this.render();
+            },
+
+            // HOW IT WORKS: Removes the item at FRONT. It rejects an empty queue, clears that buffer slot, resets both pointers
+            //                when the last item is removed, or advances FRONT with modulo when more items remain. Finally it
+            //                decreases size and refreshes the display.
+            dequeue() {
+                if (this.size === 0) {
+                    this.showStatus('Underflow Error! Circular queue is EMPTY.', true);
+                    return;
+                }
+
+                const removed = this.buffer[this.front];
+                // Clear the front slot because its value is leaving the circular queue.
+                this.buffer[this.front] = null;
+                const oldFront = this.front;
+
+                if (this.size === 1) {
+                    // Use -1 to show that the queue currently has no valid FRONT position.
+                    this.front = -1;
+                    // Use -1 to show that the queue currently has no valid REAR position.
+                    this.rear = -1;
+                } else {
+                    // Advance FRONT by one; modulo wraps it to index 0 when it passes the last slot.
+                    this.front = (this.front + 1) % this.capacity;
+                }
+
+                // Decrease the number of stored values after a successful dequeue.
+                this.size--;
+
+                this.showStatus(`Dequeued "${removed}" from index ${oldFront}. front = (${oldFront} + 1) % ${this.capacity} = ${this.front}.`);
+                document.getElementById('circ-math-explain').innerHTML = `
+                    Dequeued <strong>${removed}</strong> from index <strong>${oldFront}</strong>.<br>
+                    Next Front: <code>front = (${oldFront} + 1) % ${this.capacity} = ${this.front}</code>. Current Size: ${this.size}/${this.capacity}.
+                `;
+                this.render();
+            },
+
+            // HOW IT WORKS: Sets up a prepared example with FRONT at index 2 and REAR at index 5. The next enqueue will show why
+            //                (5 + 1) % 6 becomes index 0.
+            demoWrapAround() {
+                // Set up scenario where rear is at index 5 and front is at 2
+                this.buffer = [null, null, '30', '40', '50', '60'];
+                this.front = 2;
+                this.rear = 5;
+                this.size = 4;
+                this.render();
+
+                this.showStatus('Pre-loaded wrap-around state: front is at index 2, rear is at end (index 5). Click "Enqueue" to watch index wrap to 0!', false);
+                document.getElementById('circ-math-explain').innerHTML = `
+                    <span style="color:#ffd700;"><strong>Wrap-Around Ready:</strong></span> Rear is at index 5. The next enqueue will execute:<br>
+                    <code>nextRear = (5 + 1) % 6 = 0</code>, wrapping back to the beginning of the buffer!
+                `;
+            },
+
+            // HOW IT WORKS: Updates the FRONT, REAR, and size labels, then draws the same buffer in two ways: a straight row of
+            //                indexed slots and a circular SVG ring. It calculates each circle's position using sine and cosine
+            //                and colours the active pointers.
+            render() {
+                document.getElementById('circ-front-disp').innerText = this.front;
+                document.getElementById('circ-rear-disp').innerText = this.rear;
+                document.getElementById('circ-size-disp').innerText = `${this.size} / ${this.capacity}`;
+
+                // First draw the buffer as a straight row, including its FRONT and REAR markers.
+                const linTrack = document.getElementById('circ-linear-track');
+                linTrack.innerHTML = '';
+                for (let i = 0; i < this.capacity; i++) {
+                    const isOccupied = this.buffer[i] !== null;
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    if (this.size > 0) {
+                        if (i === this.front && i === this.rear) {
+                            slot.innerHTML += `<div class="pointer-tag tag-both">F & R</div>`;
+                        } else if (i === this.front) {
+                            slot.innerHTML += `<div class="pointer-tag tag-front">F (${i})</div>`;
+                        } else if (i === this.rear) {
+                            slot.innerHTML += `<div class="pointer-tag tag-rear">R (${i})</div>`;
+                        }
+                    }
+
+                    const el = document.createElement('div');
+                    el.className = `queue-element ${isOccupied ? 'filled' : 'empty'}`;
+                    el.innerText = isOccupied ? this.buffer[i] : 'Empty';
+
+                    const idx = document.createElement('div');
+                    idx.className = 'slot-index';
+                    idx.innerText = `[${i}]`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(idx);
+                    linTrack.appendChild(slot);
+                }
+
+                // Then draw the very same buffer as a ring so the wrap-around is easy to see.
+                const svg = document.getElementById('circ-svg');
+                svg.innerHTML = '';
+
+                const cx = 180, cy = 180, radius = 120;
+
+                // Show the queue size and whether the buffer is empty, partly filled, or full.
+                svg.innerHTML += `
+                    <circle cx="${cx}" cy="${cy}" r="60" fill="#181818" stroke="#333" stroke-width="2"/>
+                    <text x="${cx}" y="${cy - 12}" fill="#58b7ff" font-size="14" font-weight="bold" text-anchor="middle">CIRCULAR</text>
+                    <text x="${cx}" y="${cy + 8}" fill="#aaa" font-size="12" text-anchor="middle">Size: ${this.size} / ${this.capacity}</text>
+                    <text x="${cx}" y="${cy + 26}" fill="${this.size === this.capacity ? '#ff6b6b' : (this.size === 0 ? '#888' : '#2ecc71')}" font-size="12" font-weight="bold" text-anchor="middle">
+                        ${this.size === this.capacity ? 'FULL' : (this.size === 0 ? 'EMPTY' : 'NORMAL')}
+                    </text>
+                `;
+
+                // A faint circle is only a visual guide for placing the slots around the ring.
+                svg.innerHTML += `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="#2a2a2a" stroke-width="2" stroke-dasharray="4,4"/>`;
+
+                for (let i = 0; i < this.capacity; i++) {
+                    // Calculate the angle for this slot so all buffer positions are spaced evenly around the circle.
+                    const angle = (2 * Math.PI / this.capacity) * i - Math.PI / 2;
+                    // Convert the angle into the horizontal coordinate for this circular slot.
+                    const x = cx + radius * Math.cos(angle);
+                    // Convert the angle into the vertical coordinate for this circular slot.
+                    const y = cy + radius * Math.sin(angle);
+
+                    const isOccupied = this.buffer[i] !== null;
+                    const isFront = (i === this.front && this.size > 0);
+                    const isRear = (i === this.rear && this.size > 0);
+
+                    let fillColor = isOccupied ? '#58b7ff' : '#222222';
+                    let strokeColor = isOccupied ? '#58b7ff' : '#444';
+                    let textColor = isOccupied ? '#000000' : '#888';
+
+                    if (isFront && isRear) {
+                        strokeColor = '#ffd700';
+                    } else if (isFront) {
+                        fillColor = '#ffd700';
+                        textColor = '#000';
+                    } else if (isRear) {
+                        strokeColor = '#937BEB';
+                    }
+
+                    svg.innerHTML += `
+                        <g>
+                            <circle cx="${x}" cy="${y}" r="28" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isFront || isRear ? 3 : 1}"/>
+                            <text x="${x}" y="${y + 5}" fill="${textColor}" font-size="14" font-weight="bold" text-anchor="middle">
+                                ${isOccupied ? this.buffer[i] : '•'}
+                            </text>
+                            <text x="${x + (Math.cos(angle) * 38)}" y="${y + (Math.sin(angle) * 38) + 4}" fill="#aaa" font-size="12" font-weight="bold" text-anchor="middle">
+                                [${i}]
+                            </text>
+                        </g>
+                    `;
+                }
+            },
+
+            // HOW IT WORKS: Shows the circular-queue result using either the normal information style or the error style.
+            showStatus(msg, isError = false) {
+                const box = document.getElementById('circ-status-box');
+                box.className = isError ? 'status-alert alert-error-custom' : 'status-alert alert-info-custom';
+                box.innerHTML = `<i class="fa fa-${isError ? 'exclamation-triangle' : 'info-circle'}"></i> <span>${msg}</span>`;
+            },
+
+            // HOW IT WORKS: Creates a fresh six-slot buffer filled with null, resets FRONT and REAR to -1, sets size to zero,
+            //                and redraws the empty circular queue.
+            reset() {
+                this.buffer = new Array(this.capacity).fill(null);
+                // Use -1 to show that the queue currently has no valid FRONT position.
+                this.front = -1;
+                // Use -1 to show that the queue currently has no valid REAR position.
+                this.rear = -1;
+                this.size = 0;
+                this.render();
+                this.showStatus('Circular queue reset.');
+            }
+        };
+
+        // ===================================================
+        // 8. SECTION 8: PRIORITY QUEUE
+        // ===================================================
+        const PriorityQueueApp = {
+            // This object keeps the data and functions for the Priority Queue demonstration.
+            // CRITICAL RULE: smaller number = higher priority
+            // Tasks stored in ascending priority-number order; the smallest number stays at FRONT.
+            pq: [],
+
+            // HOW IT WORKS: Redraws the priority queue in its already-sorted order. The first item is marked as the next one to
+            //                be serviced, and each item gets a label based on its priority number.
+            render() {
+                const track = document.getElementById('pri-track');
+                track.innerHTML = '';
+                document.getElementById('pri-count-text').innerText = `Items: ${this.pq.length}`;
+
+                if (this.pq.length === 0) {
+                    track.innerHTML = '<span style="color:#666;">(Priority Queue is empty)</span>';
+                    return;
+                }
+
+                this.pq.forEach((item, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    if (idx === 0) {
+                        slot.innerHTML += `<div class="pointer-tag tag-front" style="top:-32px;">NEXT IN LINE (PRI 1)</div>`;
+                    }
+
+                    const el = document.createElement('div');
+                    el.className = 'priority-item';
+
+                    let badgeClass = 'pri-low';
+                    let tierName = 'LOW';
+                    if (item.priority <= 1) { badgeClass = 'pri-high'; tierName = 'HIGHEST'; }
+                    else if (item.priority <= 3) { badgeClass = 'pri-med'; tierName = 'MED'; }
+
+                    el.innerHTML = `
+                        <div style="font-size:18px;">${item.val}</div>
+                        <div class="pri-badge ${badgeClass}">Pri: ${item.priority} (${tierName})</div>
+                    `;
+
+                    const idxLabel = document.createElement('div');
+                    idxLabel.className = 'slot-index';
+                    idxLabel.innerText = `Rank #${idx + 1}`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(idxLabel);
+                    track.appendChild(slot);
+                });
+            },
+
+            // HOW IT WORKS: Reads a value and priority, creates an item object, and searches for the first item with a larger
+            //                priority number. It inserts before that item; if none is found, it appends at the end. Smaller
+            //                numbers therefore stay closer to FRONT.
+            insert() {
+                const valInput = document.getElementById('pri-val-input');
+                const priInput = document.getElementById('pri-num-input');
+                const val = valInput.value.trim() || 'Task';
+                const pri = parseInt(priInput.value) || 1;
+
+                const newItem = { val, priority: pri, id: Date.now() };
+
+                // Keep the smallest priority number nearest FRONT by inserting before the first larger number.
+                let inserted = false;
+                for (let i = 0; i < this.pq.length; i++) {
+                    if (newItem.priority < this.pq[i].priority) {
+                        // Insert the new task at position i without deleting anything, keeping priority order.
+                        this.pq.splice(i, 0, newItem);
+                        inserted = true;
+                        break;
+                    }
+                }
+                if (!inserted) {
+                    // No existing task has a lower priority number, so place this task at the end.
+                    this.pq.push(newItem);
+                }
+
+                this.logAction(`INSERT: Added "${val}" with Priority ${pri}. Ordered automatically by priority.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Removes the item at index 0 because the array is kept sorted with the highest-priority item first.
+            //                It checks for underflow before removing.
+            remove() {
+                if (this.pq.length === 0) {
+                    this.showStatus('Underflow Error! Priority Queue is empty.', true);
+                    return;
+                }
+                const highest = this.pq.shift();
+                this.logAction(`SERVICED HIGHEST PRIORITY: "${highest.val}" (Priority ${highest.priority}) removed.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Reads the first item to show which task has the highest priority, without removing it. An empty
+            //                array produces an underflow message.
+            peek() {
+                if (this.pq.length === 0) {
+                    this.showStatus('Underflow Error! Cannot peek empty priority queue.', true);
+                    return;
+                }
+                const top = this.pq[0];
+                this.showStatus(`Highest Priority in Queue: "${top.val}" with Priority ${top.priority}.`);
+            },
+
+            // HOW IT WORKS: Loads five sample tasks and inserts each one into priority order using the same comparison rule as
+            //                the normal Insert button.
+            runExample() {
+                this.pq = [];
+                const tasks = [
+                    { val: 'Email Sync', priority: 4 },
+                    { val: 'Critical Alert', priority: 1 },
+                    { val: 'File Save', priority: 2 },
+                    { val: 'Crash Report', priority: 1 },
+                    { val: 'Index Rebuild', priority: 3 }
+                ];
+                tasks.forEach(t => {
+                    let ins = false;
+                    for (let i = 0; i < this.pq.length; i++) {
+                        if (t.priority < this.pq[i].priority) {
+                            this.pq.splice(i, 0, t);
+                            ins = true;
+                            break;
+                        }
+                    }
+                    if (!ins) this.pq.push(t);
+                });
+                this.logAction('Loaded sample task queue. Notice elements sorted strictly by ascending priority number (1 > 2 > 3 > 4).');
+                this.render();
+            },
+
+            // HOW IT WORKS: Writes the latest priority-queue action into the log and status areas.
+            logAction(text) {
+                document.getElementById('pri-log').innerText = text;
+                this.showStatus(text);
+            },
+
+            // HOW IT WORKS: Displays the priority-queue message and selects the normal or error appearance.
+            showStatus(msg, isError = false) {
+                const box = document.getElementById('pri-status-box');
+                box.className = isError ? 'status-alert alert-error-custom' : 'status-alert alert-info-custom';
+                box.innerHTML = `<i class="fa fa-${isError ? 'exclamation-triangle' : 'info-circle'}"></i> <span>${msg}</span>`;
+            },
+
+            // HOW IT WORKS: Clears all priority items, redraws the empty queue, and records the reset action.
+            reset() {
+                this.pq = [];
+                this.render();
+                this.logAction('Priority Queue reset.');
+            }
+        };
+
+        // ===================================================
+        // 9. SECTION 9: ARRAY IMPLEMENTATION
+        // ===================================================
+        const ArrayQueueApp = {
+            // This object keeps the data and functions for the Array Queue demonstration.
+            // Fixed number of array slots in this linear-queue example.
+            capacity: 6,
+            // The fixed storage cells; null represents an unused cell.
+            array: new Array(6).fill(null),
+            // Index of the first active item; -1 represents an empty queue.
+            front: -1,
+            // Index of the last inserted item; -1 represents an empty queue.
+            rear: -1,
+
+            // HOW IT WORKS: Displays the FRONT and REAR indices and redraws all fixed array positions. It distinguishes active
+            //                values, empty positions, and earlier positions that became unusable after dequeue.
+            render() {
+                document.getElementById('arr-ptr-front').innerText = this.front;
+                document.getElementById('arr-ptr-rear').innerText = this.rear;
+
+                const track = document.getElementById('arr-track');
+                track.innerHTML = '';
+
+                for (let i = 0; i < this.capacity; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot';
+
+                    // Mark the current pointer positions so the array indices are easy to follow.
+                    if (this.front !== -1) {
+                        if (i === this.front && i === this.rear) {
+                            slot.innerHTML += `<div class="pointer-tag tag-both">F & R</div>`;
+                        } else if (i === this.front) {
+                            slot.innerHTML += `<div class="pointer-tag tag-front">FRONT</div>`;
+                        } else if (i === this.rear) {
+                            slot.innerHTML += `<div class="pointer-tag tag-rear">REAR</div>`;
+                        }
+                    }
+
+                    const isOccupied = (this.front !== -1 && i >= this.front && i <= this.rear);
+                    const isWasted = (this.front > 0 && i < this.front);
+
+                    const el = document.createElement('div');
+                    el.className = `queue-element ${isOccupied ? 'filled' : 'empty'}`;
+                    if (isWasted) {
+                        el.style.backgroundColor = '#2d1414';
+                        el.style.borderColor = '#e74c3c';
+                        el.style.color = '#ff6b6b';
+                        el.innerText = 'Wasted';
+                    } else if (isOccupied) {
+                        el.innerText = this.array[i];
+                    } else {
+                        el.innerText = 'Empty';
+                    }
+
+                    const idx = document.createElement('div');
+                    idx.className = 'slot-index';
+                    idx.innerText = `Index [${i}]`;
+
+                    slot.appendChild(el);
+                    slot.appendChild(idx);
+                    track.appendChild(slot);
+                }
+            },
+
+            // HOW IT WORKS: Implements a simple linear array queue. It first checks whether REAR has reached the last index; if
+            //                so, it reports either ordinary overflow or false overflow. Otherwise it initializes the pointers for
+            //                the first item or increments REAR, stores the new value, and redraws.
+            enqueue() {
+                const val = document.getElementById('arr-val-input').value.trim() || '10';
+
+                // In a simple linear queue, REAR cannot move past the final array index.
+                if (this.rear === this.capacity - 1) {
+                    if (this.front > 0) {
+                        this.showStatus(`FALSE OVERFLOW! rear = ${this.rear} (end of array), but slots 0..${this.front - 1} are empty! Linear queue cannot utilize them without expensive O(N) shifts.`, true);
+                    } else {
+                        this.showStatus(`Queue Overflow! Array capacity (${this.capacity}) reached.`, true);
+                    }
+                    return;
+                }
+
+                if (this.front === -1) {
+                    this.front = 0;
+                    this.rear = 0;
+                } else {
+                    // Move REAR to the next free array position in this simple linear queue.
+                    this.rear++;
+                }
+
+                // Put the new value in the array cell where REAR currently points.
+                this.array[this.rear] = val;
+                this.showStatus(`Enqueued "${val}" at array[${this.rear}].`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Removes the value at FRONT and clears that array cell. If it was the last item, both pointers return
+            //                to -1; otherwise FRONT moves one position right, leaving the old cell unused.
+            dequeue() {
+                if (this.front === -1 || this.front > this.rear) {
+                    this.showStatus('Underflow Error! Array queue is empty.', true);
+                    return;
+                }
+
+                const rem = this.array[this.front];
+                this.array[this.front] = null;
+                const oldFront = this.front;
+
+                if (this.front === this.rear) {
+                    // Use -1 to show that the queue currently has no valid FRONT position.
+                    this.front = -1;
+                    // Use -1 to show that the queue currently has no valid REAR position.
+                    this.rear = -1;
+                } else {
+                    // Move FRONT one position right because the old first array item has been removed.
+                    this.front++;
+                }
+
+                this.showStatus(`Dequeued "${rem}" from array[${oldFront}]. Slot ${oldFront} is now wasted space.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Plays a three-stage example: fill the array, dequeue two front items, then try to enqueue again. The
+            //                last step shows false overflow because REAR is already at the final index even though earlier cells
+            //                are empty.
+            demonstrateLimitation() {
+                this.reset();
+                const steps = [
+                    () => { this.array = ['10', '20', '30', '40', '50', '60']; this.front = 0; this.rear = 5; this.render(); this.showStatus('Step 1: Filled array completely from index 0 to 5.'); },
+                    () => { this.array[0] = null; this.array[1] = null; this.front = 2; this.render(); this.showStatus('Step 2: Dequeued 2 elements. Front moved to index 2. Slots 0 and 1 are now vacant but wasted!'); },
+                    () => { 
+                        this.showStatus('Step 3: Try to ENQUEUE 70 -> REJECTED! Because rear == 5 (capacity - 1). This is FALSE OVERFLOW!', true);
+                        document.getElementById('arr-limitation-text').innerHTML = `
+                            <span style="color:#ff6b6b; font-weight:bold;">FALSE OVERFLOW OBSERVED:</span><br>
+                            Notice that slots [0] and [1] are completely empty, yet <code>ENQUEUE</code> fails because <code>rear == capacity - 1</code>.<br>
+                            This linear queue limitation creates memory leakage and wasted space, proving the necessity of the <strong>Circular Queue</strong> modulo wrapping technique!
+                        `;
+                    }
+                ];
+
+                steps[0]();
+                setTimeout(steps[1], 1500);
+                setTimeout(steps[2], 3000);
+            },
+
+            // HOW IT WORKS: Updates the array-queue message and chooses the normal or error style.
+            showStatus(msg, isError = false) {
+                const box = document.getElementById('arr-status-box');
+                box.className = isError ? 'status-alert alert-error-custom' : 'status-alert alert-info-custom';
+                box.innerHTML = `<i class="fa fa-${isError ? 'exclamation-triangle' : 'info-circle'}"></i> <span>${msg}</span>`;
+            },
+
+            // HOW IT WORKS: Fills the backing array with null values, resets both pointers to -1, redraws the empty queue, and
+            //                updates the status.
+            reset() {
+                this.array = new Array(this.capacity).fill(null);
+                // Use -1 to show that the queue currently has no valid FRONT position.
+                this.front = -1;
+                // Use -1 to show that the queue currently has no valid REAR position.
+                this.rear = -1;
+                this.render();
+                this.showStatus('Array queue reset.');
+            }
+        };
+
+        // ===================================================
+        // 10. SECTION 10: LINKED LIST IMPLEMENTATION
+        // ===================================================
+        const LinkedListQueueApp = {
+            // Note: this is a visual simulation. The app stores node records in a JS array and displays made-up addresses; it does not allocate real C++ heap nodes.
+            // This object keeps the data and functions for the LinkedList Queue demonstration.
+            // Node records for the demo. This browser implementation uses an array to model links; addresses are simulated strings, not real memory pointers.
+            nodes: [], // { data, nextAddr, addr }
+
+            // HOW IT WORKS: Draws the linked-list queue from the nodes array. It shows the simulated FRONT and REAR addresses,
+            //                each node's data and next address, arrows between nodes, and NULL after the last node.
+            render() {
+                const stage = document.getElementById('ll-stage');
+                stage.innerHTML = '';
+
+                const count = this.nodes.length;
+                document.getElementById('ll-count-text').innerText = count;
+
+                if (count === 0) {
+                    document.getElementById('ll-ptr-front-text').innerText = 'NULL';
+                    document.getElementById('ll-ptr-rear-text').innerText = 'NULL';
+                    stage.innerHTML = '<span style="color:#777; font-size:18px;">FRONT = NULL, REAR = NULL (Queue is empty)</span>';
+                    return;
+                }
+
+                document.getElementById('ll-ptr-front-text').innerText = this.nodes[0].addr;
+                document.getElementById('ll-ptr-rear-text').innerText = this.nodes[count - 1].addr;
+
+                this.nodes.forEach((node, idx) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.display = 'flex';
+                    wrapper.style.alignItems = 'center';
+                    wrapper.style.gap = '15px';
+
+                    const nodeBox = document.createElement('div');
+                    nodeBox.className = 'll-node-box';
+
+                    // Label the first and last nodes so the FRONT and REAR references are visible.
+                    if (idx === 0 && idx === count - 1) {
+                        nodeBox.innerHTML += `<div class="pointer-tag tag-both" style="top:-32px;">FRONT & REAR</div>`;
+                    } else if (idx === 0) {
+                        nodeBox.innerHTML += `<div class="pointer-tag tag-front" style="top:-32px;">FRONT -> ${node.addr}</div>`;
+                    } else if (idx === count - 1) {
+                        nodeBox.innerHTML += `<div class="pointer-tag tag-rear" style="top:-32px;">REAR -> ${node.addr}</div>`;
+                    }
+
+                    nodeBox.innerHTML += `
+                        <div class="ll-data-part">${node.data}</div>
+                        <div class="ll-next-part">
+                            <span style="color:#aaa; font-size:11px;">next:</span>&nbsp;${node.nextAddr}
+                        </div>
+                    `;
+
+                    wrapper.appendChild(nodeBox);
+
+                    const arrow = document.createElement('div');
+                    arrow.className = 'll-arrow';
+                    arrow.innerHTML = '──►';
+                    wrapper.appendChild(arrow);
+
+                    stage.appendChild(wrapper);
+                });
+
+                // Every linked list ends at NULL; this box represents the final next pointer.
+                const nullBox = document.createElement('div');
+                nullBox.className = 'll-null';
+                nullBox.innerText = 'NULL';
+                stage.appendChild(nullBox);
+            },
+
+            // HOW IT WORKS: Creates a new node record with data, a simulated address, and nextAddr set to NULL. If a tail
+            //                already exists, its nextAddr is changed to the new address; then the node is appended and the
+            //                display/code explanation are updated.
+            enqueue() {
+                const val = document.getElementById('ll-val-input').value.trim() || '10';
+                const addr = '0x' + (1000 + this.nodes.length * 32).toString(16).toUpperCase();
+
+                const newNode = {
+                    data: val,
+                    addr: addr,
+                    nextAddr: 'NULL'
+                };
+
+                if (this.nodes.length > 0) {
+                    // Change the old tail’s next field so it points to the new node.
+                    this.nodes[this.nodes.length - 1].nextAddr = addr;
+                }
+
+                // Add the new node record to the end of the simulated linked list.
+                this.nodes.push(newNode);
+
+                document.getElementById('ll-code-explain').innerHTML = `
+// Enqueue Operation (O(1)):
+Node* newNode = new Node("${val}");
+if (rear == nullptr) {
+    front = rear = newNode; // First node
+} else {
+    rear->next = newNode;   // Link previous tail
+    rear = newNode;         // Advance rear pointer
+}
+                `;
+
+                this.showStatus(`Enqueued Node("${val}") at simulated heap address ${addr}.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Checks for an empty list, removes the first node with shift(), and explains the pointer steps used
+            //                in a real linked-list implementation. If that was the last node, render() shows both ends as NULL.
+            dequeue() {
+                if (this.nodes.length === 0) {
+                    this.showStatus('Underflow Error! Cannot dequeue from an empty linked list.', true);
+                    return;
+                }
+
+                const removed = this.nodes.shift();
+
+                document.getElementById('ll-code-explain').innerHTML = `
+// Dequeue Operation (O(1)):
+if (front == nullptr) return UNDERFLOW;
+Node* temp = front;
+front = front->next; // Advance head pointer
+if (front == nullptr) rear = nullptr; // List now empty
+delete temp; // Free memory (${removed.addr})
+                `;
+
+                this.showStatus(`Dequeued Node("${removed.data}"). Memory at ${removed.addr} freed.`);
+                this.render();
+            },
+
+            // HOW IT WORKS: Reads the data and simulated address from the first node without removing it. If there is no first
+            //                node, it reports underflow.
+            peek() {
+                if (this.nodes.length === 0) {
+                    this.showStatus('Underflow Error! Queue is empty.', true);
+                    return;
+                }
+                const head = this.nodes[0];
+                this.showStatus(`Peek Front: Data = "${head.data}" at memory address ${head.addr}.`);
+            },
+
+            // HOW IT WORKS: Checks whether the nodes array has zero entries and reports the equivalent linked-list condition:
+            //                FRONT is NULL or points to the first node.
+            isEmpty() {
+                const empty = this.nodes.length === 0;
+                this.showStatus(`isEmpty(): ${empty ? 'TRUE (front == nullptr)' : 'FALSE (front -> ' + this.nodes[0].addr + ')'}`);
+            },
+
+            // HOW IT WORKS: Builds three sample node records, links each previous node to the next simulated address, then draws
+            //                the finished linked-list queue.
+            runExample() {
+                this.nodes = [];
+                const vals = ['10', '20', '30'];
+                vals.forEach((v, idx) => {
+                    const addr = '0x' + (1000 + idx * 32).toString(16).toUpperCase();
+                    if (this.nodes.length > 0) this.nodes[this.nodes.length - 1].nextAddr = addr;
+                    this.nodes.push({ data: v, addr: addr, nextAddr: 'NULL' });
+                });
+                this.render();
+                this.showStatus('Loaded sample Linked List queue. FRONT points to head (0x3E8), REAR points to tail (0x428).');
+            },
+
+            // HOW IT WORKS: Displays a linked-list operation message and changes the box to the normal or error style.
+            showStatus(msg, isError = false) {
+                const box = document.getElementById('ll-status-box');
+                box.className = isError ? 'status-alert alert-error-custom' : 'status-alert alert-info-custom';
+                box.innerHTML = `<i class="fa fa-${isError ? 'exclamation-triangle' : 'info-circle'}"></i> <span>${msg}</span>`;
+            },
+
+            // HOW IT WORKS: Removes all simulated nodes, redraws FRONT = NULL and REAR = NULL, restores the initial pointer
+            //                explanation, and displays the reset message.
+            reset() {
+                this.nodes = [];
+                this.render();
+                document.getElementById('ll-code-explain').innerText = `front = nullptr;\nrear = nullptr;`;
+                this.showStatus('Linked list cleared. Both FRONT and REAR are NULL.');
+            }
+        };
+
+        // Window load initializers
+        window.addEventListener('DOMContentLoaded', () => {
+            // At this point the HTML is ready, so each render() can safely find its display elements.
+            QueueApp.init();
+            PeekApp.render();
+            IsEmptyApp.render();
+            IsFullApp.render();
+            SingleQueueApp.render();
+            DequeApp.render();
+            CircularQueueApp.init();
+            PriorityQueueApp.render();
+            ArrayQueueApp.render();
+            LinkedListQueueApp.render();
+        });
+    </script>
+</body>
+</html>
+
+

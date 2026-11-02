@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Basic browser settings and the page title. -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoVis - HashMap Visualizer</title>
+
+    <!-- Bootstrap provides the responsive grid and ready-made layout classes. -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Font Awesome supplies the small icons used by buttons and headings. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- jQuery and the shared AlgoVis stylesheet are included for compatibility with the project. -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <link rel="stylesheet" href="dsa_shared.css">
+
+    <style>
+        /* The page-wide rules keep the existing AlgoVis dark theme and typography consistent. */
+        * { font-family: 'Gill Sans', 'Gill Sans MT', Calibri, sans-serif; box-sizing: border-box; }
+        body { background-color: #000000; color: white; margin: 0; padding: 0; overflow-x: hidden; }
+        .banner { background-color: #7d39a5; color: #ffffff; font-size: 50px; text-align: center; padding: 10px 0; font-weight: bold; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(125, 57, 165, 0.4); }
+        .navbar { overflow: hidden; text-align: center; background-color: rgb(2, 2, 2); padding: 0; display: flex; justify-content: center; flex-wrap: wrap; border-bottom: 1px solid #222; }
+        .navbar a { float: left; color: #dddddd; padding: 12px 20px; font-size: 20px; text-decoration: none; cursor: pointer; transition: all 0.2s ease; }
+        .navbar a:hover { background-color: rgba(172, 80, 233, 0.705); color: rgb(255, 241, 241); border-radius: 20px; transform: scale(1.08); }
+        .navbar a.active { background-color: #937BEB; color: #faf1f1; border-radius: 20px; }
+
+        /* These classes display each hash-table bucket and visually distinguish its current state. */
+        .bucket-box { display: inline-block; min-width: 80px; min-height: 60px; border: 2px solid #444; background: #111; color: white; text-align: center; padding: 5px; margin: 3px; vertical-align: top; border-radius: 4px; transition: all 0.25s ease; position: relative; }
+        .bucket-box.active { border-color: #58b7ff; background: #1a2a3a; box-shadow: 0 0 14px rgba(88, 183, 255, 0.65); }
+        .bucket-box.collision { border-color: #ff9800; background: #2a2215; box-shadow: 0 0 12px rgba(255, 152, 0, 0.5); }
+        .bucket-box.found { border-color: #2ed573; background: #12281b; box-shadow: 0 0 12px rgba(46, 213, 115, 0.6); }
+        .bucket-index { color: #58b7ff; font-weight: bold; font-size: 12px; }
+        .bucket-entry { font-size: 13px; color: #ddd; border-top: 1px solid #333; margin-top: 3px; }
+        .bucket-entry.highlight-node { background-color: #58b7ff; color: #000; font-weight: bold; padding: 3px; border-radius: 4px; }
+        .chain-connector { color: #7d39a5; font-size: 12px; margin: 2px 0; font-weight: bold; }
+        .tombstone-marker { color: #ff9800; font-size: 18px; font-weight: bold; line-height: 1.2; display: inline-block; }
+        .tombstone-text { color: #ff9800; font-size: 10px; letter-spacing: 0.5px; font-weight: bold; }
+
+        /* Cards, input fields and buttons form the main controls and information panels. */
+        .glass-card { background-color: #0d0d0d; border: 1px solid #262626; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7); }
+        .control-input { background-color: #1a1a1a; border: 1px solid #444; color: #ffffff; border-radius: 5px; padding: 8px 12px; }
+        .control-input:focus { background-color: #222; border-color: #58b7ff; color: #fff; outline: none; box-shadow: 0 0 8px rgba(88, 183, 255, 0.5); }
+        .btn-purple { background-color: #7d39a5; color: #ffffff; border: none; font-weight: bold; transition: all 0.2s ease; }
+        .btn-purple:hover { background-color: #934bc2; color: #ffffff; transform: translateY(-1px); }
+        .btn-blue { background-color: #0077c8; color: #ffffff; border: none; font-weight: bold; transition: all 0.2s ease; }
+        .btn-blue:hover { background-color: #58b7ff; color: #000000; transform: translateY(-1px); }
+        .btn-outline-custom { border: 1px solid #58b7ff; color: #58b7ff; background: transparent; font-weight: bold; transition: all 0.2s ease; }
+        .btn-outline-custom:hover { background: #58b7ff; color: #000; }
+
+        /* Playback buttons and the explanation panel make each algorithm step easy to follow. */
+        .player-btn { background-color: #1c1c1c; border: 1px solid #444; color: #58b7ff; font-size: 16px; padding: 8px 16px; border-radius: 5px; margin: 0 4px; transition: all 0.15s ease; }
+        .player-btn:hover:not(:disabled) { background-color: #7d39a5; color: #ffffff; border-color: #7d39a5; }
+        .player-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .step-panel { background: #101015; border-left: 4px solid #7d39a5; padding: 14px 18px; border-radius: 4px; margin-bottom: 12px; }
+        .math-box { background-color: #07070b; border: 1px solid #2a2035; color: #58b7ff; font-family: 'Courier New', Courier, monospace; padding: 10px 14px; border-radius: 5px; font-size: 15px; margin: 8px 0; white-space: pre-wrap; word-break: break-word; }
+
+        /* Strategy pills show which collision-handling method is currently selected. */
+        .strategy-pill { cursor: pointer; padding: 8px 16px; border-radius: 20px; border: 1px solid #444; background: #111; color: #aaa; display: inline-block; margin-right: 8px; font-size: 14px; transition: all 0.2s ease; user-select: none; }
+        .strategy-pill.active { background: #7d39a5; color: #fff; border-color: #937BEB; font-weight: bold; box-shadow: 0 0 10px rgba(125, 57, 165, 0.5); }
+
+        /* This container lets a large hash table scroll horizontally instead of breaking the page. */
+        .table-scroll-container { overflow-x: auto; padding: 15px 5px; white-space: nowrap; scrollbar-width: thin; scrollbar-color: #7d39a5 #111; }
+        .table-scroll-container::-webkit-scrollbar { height: 8px; }
+        .table-scroll-container::-webkit-scrollbar-track { background: #111; }
+        .table-scroll-container::-webkit-scrollbar-thumb { background-color: #7d39a5; border-radius: 4px; }
+        input[type=range] { accent-color: #7d39a5; }
+
+        /* Operation badges use different colours so insert, search, delete and demo steps are easy to identify. */
+        .badge-status { font-size: 11px; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+        .badge-insert { background-color: #7d39a5; color: white; }
+        .badge-search { background-color: #0077c8; color: white; }
+        .badge-delete { background-color: #c0392b; color: white; }
+        .badge-increment { background-color: #27ae60; color: white; }
+        .badge-example { background-color: #8e44ad; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- The header names the HashMap visualizer. -->
+    <div class="banner">AlgoVis - HashMap Visualizer</div>
+
+    <!-- The navigation buttons choose an operation or run the example. -->
+    <div class="navbar" id="appNavbar">
+        <a href="index.html"><i class="fa fa-home"></i> Home</a>
+        <a href="javascript:void(0)" onclick="setMode('insert')" id="nav-insert" class="active">Insert</a>
+        <a href="javascript:void(0)" onclick="setMode('search')" id="nav-search">Search</a>
+        <a href="javascript:void(0)" onclick="setMode('delete')" id="nav-delete">Delete</a>
+        <a href="javascript:void(0)" onclick="setMode('increment')" id="nav-increment">Increment</a>
+        <a href="javascript:void(0)" onclick="setMode('reset_example')" id="nav-reset">Reset / Example</a>
+    </div>
+
+    <div class="container-fluid px-4 py-3">
+
+        <!-- This row lets the user select collision handling and table capacity, while also showing HashMap statistics. -->
+        <div class="row">
+            <div class="col-lg-6 col-md-12 mb-3">
+                <div class="glass-card h-100">
+                    <label class="form-label text-white fw-bold mb-2"><i class="fa fa-cogs text-info me-1"></i> Collision Resolution Strategy:</label>
+                    <div class="mb-3">
+                        <span class="strategy-pill active" id="pillChaining" onclick="setStrategy('chaining')"><i class="fa fa-link me-1"></i> Separate Chaining</span>
+                        <span class="strategy-pill" id="pillProbing" onclick="setStrategy('probing')"><i class="fa fa-arrows-alt-h me-1"></i> Linear Probing</span>
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <label class="form-label text-white mb-0 me-2" style="font-size: 14px;">Capacity:</label>
+                        <input type="number" id="capacityInput" class="control-input" value="8" min="2" max="32" style="width: 75px;">
+                        <button class="btn btn-sm btn-outline-custom" onclick="applyCapacityChange()"><i class="fa fa-sync-alt me-1"></i> Resize Table</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 col-md-12 mb-3">
+                <div class="glass-card h-100 d-flex flex-column justify-content-between">
+                    <div><span class="text-white fw-bold"><i class="fa fa-chart-pie text-info me-1"></i> HashMap Statistics</span></div>
+                    <div class="row text-center mt-2">
+                        <div class="col-4"><div class="p-2 border border-secondary rounded bg-dark"><div class="text-muted" style="font-size: 11px;">STORED KEYS</div><div class="fs-4 fw-bold text-info" id="statSize">0</div></div></div>
+                        <div class="col-4"><div class="p-2 border border-secondary rounded bg-dark"><div class="text-muted" style="font-size: 11px;">BUCKETS (N)</div><div class="fs-4 fw-bold text-purple" style="color: #937BEB;" id="statCapacity">8</div></div></div>
+                        <div class="col-4"><div class="p-2 border border-secondary rounded bg-dark"><div class="text-muted" style="font-size: 11px;">LOAD FACTOR (α)</div><div class="fs-4 fw-bold text-warning" id="statLoadFactor">0.00</div></div></div>
+                    </div>
+                    <div class="text-muted text-end mt-2" style="font-size: 12px;" id="strategyStatusText">Separate Chaining allows unlimited items per bucket via linked list.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This row collects the key and value, offers the main operations, and provides quick sample inputs. -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="glass-card">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-3 col-sm-6">
+                            <label class="form-label text-muted mb-1" style="font-size: 12px;">KEY (STRING)</label>
+                            <input type="text" id="keyInput" class="form-control control-input" placeholder="e.g. Bhavesh" value="Bhavesh">
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <label class="form-label text-muted mb-1" style="font-size: 12px;">VALUE (NUMERIC / TEXT)</label>
+                            <input type="text" id="valInput" class="form-control control-input" placeholder="e.g. 20" value="20">
+                        </div>
+                        <div class="col-md-6 col-sm-12 d-flex flex-wrap gap-2 pt-3">
+                            <button class="btn btn-purple px-3" onclick="handleInsert()" title="Insert or update key-value pair"><i class="fa fa-plus-circle me-1"></i> Insert</button>
+                            <button class="btn btn-blue px-3" onclick="handleSearch()" title="Search for key"><i class="fa fa-search me-1"></i> Search</button>
+                            <button class="btn btn-danger px-3" onclick="handleDelete()" title="Delete key from table"><i class="fa fa-trash me-1"></i> Delete</button>
+                            <button class="btn btn-success px-3" onclick="handleIncrement()" title="Increment numeric value by 1"><i class="fa fa-arrow-up me-1"></i> Increment</button>
+                            <button class="btn btn-secondary px-3" onclick="handleReset()" title="Clear all entries"><i class="fa fa-undo me-1"></i> Reset</button>
+                            <button class="btn btn-warning text-dark fw-bold px-3" onclick="handleRunExample()" title="Run demo: Alice, Bob, Charlie, Bhavesh"><i class="fa fa-play-circle me-1"></i> Run Example</button>
+                        </div>
+                    </div>
+                    <!-- These presets fill the input boxes with ready-made key/value examples. -->
+                    <div class="mt-2 pt-2 border-top border-secondary d-flex align-items-center flex-wrap gap-2" style="font-size: 12px;">
+                        <span class="text-muted">Quick inputs:</span>
+                        <a href="javascript:void(0)" class="badge bg-dark text-info text-decoration-none border border-secondary" onclick="setInputs('Alice', '25')">Alice: 25</a>
+                        <a href="javascript:void(0)" class="badge bg-dark text-info text-decoration-none border border-secondary" onclick="setInputs('Bob', '30')">Bob: 30</a>
+                        <a href="javascript:void(0)" class="badge bg-dark text-info text-decoration-none border border-secondary" onclick="setInputs('Dan', '15')">Dan: 15 (Collides with Bob!)</a>
+                        <a href="javascript:void(0)" class="badge bg-dark text-info text-decoration-none border border-secondary" onclick="setInputs('Charlie', '22')">Charlie: 22</a>
+                        <a href="javascript:void(0)" class="badge bg-dark text-info text-decoration-none border border-secondary" onclick="setInputs('Bhavesh', '20')">Bhavesh: 20</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This row explains the current algorithm step and lets the user move through the operation timeline. -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                        <div><span id="operationBadge" class="badge-status badge-insert me-2">Ready</span><span class="fw-bold" id="stepCounterText">Step 0 of 0</span></div>
+                        <div class="d-flex align-items-center gap-2 mt-1 mt-md-0">
+                            <span class="text-muted" style="font-size: 12px;">Speed:</span>
+                            <input type="range" id="speedSlider" min="200" max="1800" step="100" value="900" style="width: 100px;" onchange="updateSpeed()">
+                            <span class="text-info" style="font-size: 12px;" id="speedLabel">0.9s</span>
+                        </div>
+                    </div>
+                    <div class="step-panel" id="stepPanel">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="text-white mb-1 fw-bold" id="stepTitle">Visualizer Idle</h5>
+                            <span id="activeBucketIndicator" class="badge bg-secondary" style="font-size: 11px;">Bucket: None</span>
+                        </div>
+                        <div class="math-box" id="stepMath">hashFunction(key, capacity) breakdown will appear here.</div>
+                        <div class="text-light" id="stepDescription" style="font-size: 15px;">Choose an operation above (Insert, Search, Delete, Increment, or Run Example) to begin step-by-step execution.</div>
+                    </div>
+                    <div class="row align-items-center g-2">
+                        <div class="col-md-4 col-sm-12 d-flex justify-content-center justify-content-md-start">
+                            <button class="player-btn" id="btnPrev" onclick="stepPrevious()" title="Previous Step"><i class="fa fa-step-backward"></i> Prev</button>
+                            <button class="player-btn" id="btnPlayPause" onclick="togglePlayPause()" title="Play / Pause"><i class="fa fa-play" id="playIcon"></i> <span id="playText">Play</span></button>
+                            <button class="player-btn" id="btnNext" onclick="stepNext()" title="Next Step">Next <i class="fa fa-step-forward"></i></button>
+                        </div>
+                        <div class="col-md-8 col-sm-12"><input type="range" class="form-range w-100" id="timelineSlider" min="0" max="0" value="0" oninput="onTimelineSliderScrub(this.value)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This row is the visual hash table; JavaScript creates the bucket boxes and their contents here. -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="glass-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2 border-bottom border-secondary pb-2">
+                        <h4 class="text-white mb-0"><i class="fa fa-database text-purple me-2" style="color: #937BEB;"></i> Hash Table Buckets (0 .. <span id="maxBucketIndex">7</span>)</h4>
+                        <div class="d-flex align-items-center gap-2"><span class="badge bg-dark border border-secondary text-light" id="tableModeBadge">Separate Chaining</span></div>
+                    </div>
+                    <div class="table-scroll-container text-center" id="bucketRow"><!-- JavaScript draws the bucket boxes here. --></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This final row explains the bucket colours, tombstones and character-code hash formula. -->
+        <div class="row">
+            <div class="col-12">
+                <div class="glass-card">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <h6 class="text-info fw-bold"><i class="fa fa-info-circle me-1"></i> Visual Guide & Legend</h6>
+                            <ul class="list-unstyled text-muted mb-0" style="font-size: 13px;">
+                                <li class="mb-1"><span class="badge border border-secondary bg-dark text-white me-1">Index [Y]</span> Default empty or inactive bucket.</li>
+                                <li class="mb-1"><span class="badge border border-info bg-info text-black me-1">Blue Border</span> Active bucket being computed, checked, or probed.</li>
+                                <li class="mb-1"><span class="badge border border-warning bg-warning text-black me-1">Orange Border</span> Collision encountered at this slot.</li>
+                                <li class="mb-1"><span class="badge border border-success bg-success text-white me-1">Green Border</span> Target key found or inserted successfully.</li>
+                                <li class="mb-1"><span class="text-warning fw-bold me-1">⊗ TOMBSTONE</span> Deleted marker in Linear Probing; ensures probe chains do not prematurely terminate.</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <h6 class="text-purple fw-bold" style="color: #937BEB;"><i class="fa fa-calculator me-1"></i> Character Code Hash Formula</h6>
+                            <div class="bg-dark p-2 border border-secondary rounded font-monospace text-light" style="font-size: 12px;">
+                                hash(key) = (sum of char codes of key) % capacity<br>
+                                Example: 'Bob' = 'B'(66) + 'o'(111) + 'b'(98) = 275<br>
+                                275 % 8 = 3 &rarr; Bucket 3
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript is the logic layer for this browser-only visualizer; it stores entries, runs algorithms and updates the page. -->
+    <script>
+        // ============================================================
+        // 1. MAIN DATA: THESE VARIABLES REPRESENT THE HASH MAP'S STATE
+        // ============================================================
+        let capacity = 8;                    // Number of buckets/slots available in the table.
+        let strategy = 'chaining';            // Current collision method: 'chaining' or 'probing'.
+
+        // With chaining, each table position stores an array of key/value entries.
+        // With probing, each position is null (empty), OCCUPIED, or a TOMBSTONE (deleted earlier).
+        let currentTable = [];
+        let currentSize = 0;                  // Number of real key/value pairs; tombstones are not counted.
+
+        // These variables remember the steps of the current operation so the user can play them like a slideshow.
+        let steps = [];
+        let currentStepIdx = 0;
+        let isPlaying = false;
+        let playTimer = null;
+        let stepDelay = 900;                  // Time between automatic steps, measured in milliseconds.
+
+        // ============================================================
+        // 2. HASH FUNCTION: TURN A STRING KEY INTO A BUCKET NUMBER
+        // ============================================================
+        function hashFunction(key, cap) {
+            let hash = 0;                     // Start the character-code total at zero.
+            const str = key.toString();       // Convert the key to a string so we can read it character by character.
+            for (let i = 0; i < str.length; i++) {
+                hash += str.charCodeAt(i);    // Add the numeric character code of the current character.
+            }
+            return hash % cap;                // Keep the result between 0 and cap - 1 using the remainder operator.
+        }
+
+        // This helper does the same calculation, but also prepares the working-out text shown in the explanation panel.
+        function getHashBreakdown(key, cap) {
+            const str = key.toString();
+            let sum = 0;
+            const parts = [];
+            for (let i = 0; i < str.length; i++) {
+                const code = str.charCodeAt(i); // Get the character code so the user can see where each number comes from.
+                sum += code;                    // Add this character's code to the running total.
+                parts.push(`'${str[i]}'(${code})`); // Save a readable piece such as 'B'(66) for the formula display.
+            }
+            const bucket = sum % cap;            // The remainder tells us which bucket should receive this key.
+            return {
+                sum: sum,
+                bucket: bucket,
+                partsStr: parts.join(' + '),
+                fullText: `hash('${str}') = sum of char codes = ${parts.join(' + ')} = ${sum}, ${sum} % ${cap} = ${bucket}`,
+                summaryText: `hash('${str}') = sum of char codes = ${sum}, ${sum} % ${cap} = ${bucket}`
+            };
+        }
+
+        // ============================================================
+        // 3. TABLE SETUP, COPYING AND SIZE COUNTING
+        // ============================================================
+        function initEmptyTable(cap, strat) {
+            const table = [];
+            if (strat === 'chaining') {
+                // Chaining needs an empty list at every bucket because several keys may land at the same index.
+                for (let i = 0; i < cap; i++) {
+                    table.push([]);
+                }
+            } else {
+                // Probing uses one slot per index. null means nobody has stored anything here yet.
+                for (let i = 0; i < cap; i++) {
+                    table.push(null);
+                }
+            }
+            return table;
+        }
+
+        function deepCloneTable(table, strat) {
+            // We make a separate copy before simulating an operation, so the real table does not change halfway through the animation.
+            if (strat === 'chaining') {
+                return table.map(bucket => bucket.map(item => ({ key: item.key, value: item.value })));
+            } else {
+                return table.map(slot => {
+                    if (slot === null) return null;                         // Preserve an actually empty slot.
+                    if (slot.status === 'TOMBSTONE') return { status: 'TOMBSTONE' }; // Preserve a deleted marker.
+                    return { key: slot.key, value: slot.value, status: 'OCCUPIED' };  // Copy a stored key/value pair.
+                });
+            }
+        }
+
+        function calculateSize(table, strat) {
+            let count = 0;
+            if (strat === 'chaining') {
+                // In chaining, every entry inside every bucket is one stored key.
+                for (let i = 0; i < table.length; i++) {
+                    count += table[i].length;
+                }
+            } else {
+                // In probing, count only OCCUPIED slots. Empty slots and tombstones are not stored keys.
+                for (let i = 0; i < table.length; i++) {
+                    if (table[i] && table[i].status === 'OCCUPIED') {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        function resetAll(keepStrategyAndCap = true) {
+            stopPlayback(); // Stop the timer first, otherwise an old animation could keep changing the new table.
+            if (!keepStrategyAndCap) {
+                capacity = 8;                // Return to the default number of buckets.
+                strategy = 'chaining';        // Return to Separate Chaining as the default method.
+            }
+            currentTable = initEmptyTable(capacity, strategy); // Build a fresh, empty table using the selected method.
+            currentSize = 0;
+            steps = [];                       // Remove the old operation history.
+            currentStepIdx = 0;
+
+            // Add one starting step so the timeline has a clear initial state even before the user performs an operation.
+            steps.push({
+                title: "Table Ready",
+                badge: { text: "IDLE", class: "badge-insert" },
+                activeBucket: null,
+                activeKey: null,
+                bucketHighlightType: "none",
+                math: `Table initialized with Capacity = ${capacity}, Strategy = ${strategy === 'chaining' ? 'Separate Chaining' : 'Linear Probing'}.`,
+                description: "Ready for operations. Click Insert, Search, Delete, Increment, or Run Example.",
+                tableState: deepCloneTable(currentTable, strategy),
+                size: 0
+            });
+
+            currentStepIdx = 0;
+            renderCurrentStep();              // Show the empty table and its initial explanation.
+            updateStats();                    // Make sure the statistics match the freshly cleared table.
+        }
+
+        // ============================================================
+        // 4. ALGORITHM SIMULATIONS: BUILD THE STEPS BEFORE PLAYING THEM
+        // ============================================================
+        // Important idea: these functions work on a COPY of the table. They create a list of snapshots,
+        // and the animation later displays those snapshots one by one. The real table is committed at the end.
+
+        // -------------------- A. INSERT --------------------
+        function generateInsertSteps(key, value, baseTable, strat, cap) {
+            const simTable = deepCloneTable(baseTable, strat); // Work on a copy so the current display remains stable during the animation.
+            let simSize = calculateSize(simTable, strat);     // Start with the number of entries already stored.
+            const opSteps = [];                               // Every object pushed here becomes one timeline frame.
+
+            const hInfo = getHashBreakdown(key, cap);         // Calculate the key's hash and prepare its explanation.
+            const bucketIndex = hInfo.bucket;                 // This is the first bucket/slot we need to inspect.
+
+            // First show the character-code addition, before highlighting any bucket.
+            opSteps.push({ title: `Insert: Compute Hash for '${key}'`, badge: { text: "INSERT", class: "badge-insert" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: hInfo.summaryText, description: `Computing hash for key '${key}' using sum of character codes.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+            // Now show the final modulo result and point to the bucket where this key should go first.
+            opSteps.push({ title: `Insert: Bucket Index Computed`, badge: { text: "INSERT", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `hash = sum_of_charcodes % capacity = ${hInfo.sum} % ${cap} = ${bucketIndex}`, description: `Calculated target bucket: ${bucketIndex}. Preparing to check bucket ${bucketIndex}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+            // This frame makes it clear that the algorithm is now inspecting the target location.
+            opSteps.push({ title: `Insert: Checking Bucket ${bucketIndex}`, badge: { text: "CHECK", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `Checking bucket ${bucketIndex}...`, description: `Checking bucket ${bucketIndex} for vacancy or existing key '${key}'.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+            if (strat === 'chaining') {
+                const chain = simTable[bucketIndex]; // This bucket is a list, so it may contain more than one key/value pair.
+                if (chain.length === 0) {
+                    // No collision: the list is empty, so the new entry can become its first node.
+                    opSteps.push({ title: `Insert: Bucket ${bucketIndex} is Empty`, badge: { text: "EMPTY", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `Bucket ${bucketIndex} is empty. Inserting (${key}, ${value}) here.`, description: `Bucket ${bucketIndex} is empty. Inserting (${key}, ${value}) here.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+                    chain.push({ key: key, value: value }); // Store the new key/value pair inside this bucket's list.
+                    simSize++;                             // One new key has been added, so increase the stored-key count.
+
+                    opSteps.push({ title: `Insert: Completed at Bucket ${bucketIndex}`, badge: { text: "SUCCESS", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: key, bucketHighlightType: "found", math: `Inserted (${key}, ${value}) at bucket ${bucketIndex}`, description: `Inserted (${key}, ${value}) at bucket ${bucketIndex}. Table size is now ${simSize}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                } else {
+                    // The bucket already has entries. Search the chain first so inserting an existing key updates it instead of duplicating it.
+                    let foundDupIndex = -1; // -1 means we have not found this key in the chain.
+                    for (let c = 0; c < chain.length; c++) {
+                        opSteps.push({ title: `Insert: Comparing Key in Chain`, badge: { text: "SCAN", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: chain[c].key, bucketHighlightType: "active", math: `Comparing existing key '${chain[c].key}' with new key '${key}'`, description: `Checking chain node ${c}: found key '${chain[c].key}'.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        if (chain[c].key === key) { // Same key means this is an update, not a second entry.
+                            foundDupIndex = c;
+                            break;
+                        }
+                    }
+
+                    if (foundDupIndex !== -1) {
+                        const oldVal = chain[foundDupIndex].value; // Keep the old value for the explanation message.
+                        chain[foundDupIndex].value = value;        // Replace the value belonging to this key.
+                        opSteps.push({ title: `Insert: Duplicate Key Found - Update Value`, badge: { text: "UPDATE", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: key, bucketHighlightType: "found", math: `Duplicate key '${key}' found. Updated value from ${oldVal} to ${value}.`, description: `Duplicate key '${key}' found in bucket ${bucketIndex}. Updated value from ${oldVal} to ${value} (Map semantics). Size remains ${simSize}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                    } else {
+                        // The bucket is occupied, but the key is different. That is a collision, so chaining adds another entry to this bucket's list.
+                        opSteps.push({ title: `Insert: Collision at Bucket ${bucketIndex}`, badge: { text: "COLLISION", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "collision", math: `Collision! Adding to chain at bucket ${bucketIndex}`, description: `Collision! Bucket ${bucketIndex} already contains ${chain.length} entry/entries. Adding (${key}, ${value}) to chain at bucket ${bucketIndex}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+                        chain.push({ key: key, value: value }); // Add the new entry to the end of the chain.
+                        simSize++;
+
+                        opSteps.push({ title: `Insert: Completed at Bucket ${bucketIndex}`, badge: { text: "SUCCESS", class: "badge-insert" }, activeBucket: bucketIndex, activeKey: key, bucketHighlightType: "found", math: `Inserted (${key}, ${value}) at bucket ${bucketIndex}`, description: `Inserted (${key}, ${value}) at bucket ${bucketIndex}. Table size is now ${simSize}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                    }
+                }
+            } else {
+                // LINEAR PROBING: one slot can hold one entry, so on a collision we check the next slot, then the next, wrapping around if needed.
+                let firstTombstoneIdx = -1; // Remember the first deleted slot, but do not use it until we know the key is not stored later.
+                let insertedAt = -1;         // This will hold the slot selected for the new entry.
+                let alreadyExistedIdx = -1;  // If the key is already present, update its value instead of inserting another copy.
+
+                // We may inspect at most 'cap' slots. The modulo keeps every calculated index inside the table.
+                for (let step = 0; step < cap; step++) {
+                    const probeIdx = (bucketIndex + step) % cap;
+                    const slot = simTable[probeIdx];
+
+                    if (slot === null) {
+                        // A truly empty slot ends the search for a duplicate: the key cannot be farther along this probe chain.
+                        opSteps.push({ title: `Insert: Probing Slot ${probeIdx}`, badge: { text: "EMPTY", class: "badge-insert" }, activeBucket: probeIdx, activeKey: null, bucketHighlightType: "active", math: `Slot ${probeIdx} is empty. Key '${key}' does not exist earlier in probe sequence.`, description: `Bucket ${probeIdx} is empty. Key is not present in table.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        insertedAt = firstTombstoneIdx !== -1 ? firstTombstoneIdx : probeIdx; // Reuse the earliest tombstone if we passed one; otherwise use this empty slot.
+                        break;
+                    } else if (slot.status === 'TOMBSTONE') {
+                        // A tombstone is available for reuse, but we keep probing because the same key might appear later.
+                        if (firstTombstoneIdx === -1) {
+                            firstTombstoneIdx = probeIdx;
+                            opSteps.push({ title: `Insert: Tombstone ⊗ Encountered`, badge: { text: "TOMBSTONE", class: "badge-insert" }, activeBucket: probeIdx, activeKey: null, bucketHighlightType: "collision", math: `Slot ${probeIdx} is a tombstone ⊗. Remembering for possible insertion.`, description: `Slot ${probeIdx} has a tombstone ⊗ (previously deleted). Continuing probe to ensure key '${key}' does not exist later...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        } else {
+                            opSteps.push({ title: `Insert: Skipping Tombstone ⊗ at ${probeIdx}`, badge: { text: "TOMBSTONE", class: "badge-insert" }, activeBucket: probeIdx, activeKey: null, bucketHighlightType: "active", math: `Slot ${probeIdx} is a tombstone ⊗. Continuing probe...`, description: `Slot ${probeIdx} is a tombstone ⊗. Continuing probe to (${probeIdx} + 1) % ${cap}...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        }
+                    } else if (slot.status === 'OCCUPIED') {
+                        if (slot.key === key) {
+                            alreadyExistedIdx = probeIdx; // We found the same key, so the operation must update its value.
+                            break;
+                        } else {
+                            // Different key in this slot: show the collision and continue to the next possible index.
+                            const nextSlot = (probeIdx + 1) % cap;
+                            opSteps.push({ title: `Insert: Collision at Slot ${probeIdx}`, badge: { text: "COLLISION", class: "badge-insert" }, activeBucket: probeIdx, activeKey: slot.key, bucketHighlightType: "collision", math: `Slot ${probeIdx} occupied by '${slot.key}'. Trying slot (${probeIdx}+1)%${cap} = ${nextSlot}...`, description: `Slot ${probeIdx} occupied. Trying slot (${probeIdx}+1)%cap...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        }
+                    }
+                }
+
+                if (alreadyExistedIdx !== -1) {
+                    const oldVal = simTable[alreadyExistedIdx].value;
+                    simTable[alreadyExistedIdx].value = value; // Update the value at the existing key's slot; the number of keys stays the same.
+                    opSteps.push({ title: `Insert: Duplicate Key Found at Slot ${alreadyExistedIdx}`, badge: { text: "UPDATE", class: "badge-insert" }, activeBucket: alreadyExistedIdx, activeKey: key, bucketHighlightType: "found", math: `Duplicate key '${key}' found at slot ${alreadyExistedIdx}. Value updated: ${oldVal} &rarr; ${value}`, description: `Duplicate key '${key}' found at slot ${alreadyExistedIdx}. Updated value to ${value}. Size remains ${simSize}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                } else if (insertedAt !== -1) {
+                    simTable[insertedAt] = { key: key, value: value, status: 'OCCUPIED' }; // Put the new key/value pair into the chosen empty or deleted slot.
+                    simSize++;
+                    opSteps.push({ title: `Insert: Inserted at Bucket ${insertedAt}`, badge: { text: "SUCCESS", class: "badge-insert" }, activeBucket: insertedAt, activeKey: key, bucketHighlightType: "found", math: `Inserted (${key}, ${value}) at bucket ${insertedAt}`, description: `Inserted (${key}, ${value}) at bucket ${insertedAt}. Table size is now ${simSize}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                } else {
+                    // We inspected every slot and did not find either an existing key or a usable location.
+                    opSteps.push({ title: `Insert: Table Full!`, badge: { text: "FAILED", class: "badge-delete" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: `Error: Table is full (Capacity = ${cap}). Cannot insert new key in Linear Probing.`, description: `Table is completely full. Please resize table or delete entries before inserting.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                }
+            }
+
+            // Send back the complete animation and the final simulated result. The real table is updated later.
+            return { steps: opSteps, finalTable: simTable, finalSize: simSize };
+        }
+
+        // -------------------- B. SEARCH --------------------
+        function generateSearchSteps(key, baseTable, strat, cap) {
+            const simTable = deepCloneTable(baseTable, strat); // Search should inspect a copy and must not alter stored data.
+            const simSize = calculateSize(simTable, strat);
+            const opSteps = [];
+            const hInfo = getHashBreakdown(key, cap);
+            const bucketIndex = hInfo.bucket;
+
+            // First tell the user how the key maps to its starting bucket.
+            opSteps.push({ title: `Search: Compute Hash for '${key}'`, badge: { text: "SEARCH", class: "badge-search" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: hInfo.summaryText, description: `Computing hash for key '${key}' &rarr; bucket ${bucketIndex}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+            opSteps.push({ title: `Search: Checking Bucket ${bucketIndex}`, badge: { text: "SEARCH", class: "badge-search" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `Checking bucket ${bucketIndex}...`, description: `Checking bucket ${bucketIndex} for key '${key}'.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+            if (strat === 'chaining') {
+                const chain = simTable[bucketIndex]; // Only this bucket's linked chain can contain the key.
+                if (chain.length === 0) {
+                    opSteps.push({ title: `Search: Bucket ${bucketIndex} is Empty`, badge: { text: "NOT FOUND", class: "badge-delete" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `Bucket ${bucketIndex} is empty. Key '${key}' not found in table.`, description: `Key '${key}' not found in table.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                } else {
+                    let found = false;
+                    for (let c = 0; c < chain.length; c++) {
+                        const entry = chain[c]; // Take one key/value pair from the chain and compare its key.
+                        opSteps.push({ title: `Search: Comparing in Chain (${c + 1}/${chain.length})`, badge: { text: "COMPARE", class: "badge-search" }, activeBucket: bucketIndex, activeKey: entry.key, bucketHighlightType: "active", math: `Comparing chain entry '${entry.key}' with search key '${key}'`, description: `Comparing '${entry.key}' === '${key}'...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        if (entry.key === key) { // A matching key means the value has been found.
+                            found = true;
+                            opSteps.push({ title: `Search: Key '${key}' Found!`, badge: { text: "FOUND", class: "badge-increment" }, activeBucket: bucketIndex, activeKey: key, bucketHighlightType: "found", math: `FOUND: Key '${key}' &rarr; Value = ${entry.value}`, description: `Key '${key}' found in bucket ${bucketIndex}! Value = ${entry.value}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                            break; // Stop checking the chain; there is no reason to inspect later entries.
+                        }
+                    }
+                    if (!found) {
+                        opSteps.push({ title: `Search: End of Chain Reached`, badge: { text: "NOT FOUND", class: "badge-delete" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `Traversed entire chain at bucket ${bucketIndex}. Key '${key}' not found in table.`, description: `Key '${key}' not found in table.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                    }
+                }
+            } else {
+                // LINEAR PROBING SEARCH: follow the same sequence used during insertion.
+                let found = false;
+                for (let step = 0; step < cap; step++) {
+                    const probeIdx = (bucketIndex + step) % cap; // Move one slot at a time and wrap from the last index to zero.
+                    const slot = simTable[probeIdx];
+
+                    if (slot === null) {
+                        // A truly empty slot means the key was never placed farther along this probe sequence, so stop here.
+                        opSteps.push({ title: `Search: Empty Slot ${probeIdx} Hit`, badge: { text: "NOT FOUND", class: "badge-delete" }, activeBucket: probeIdx, activeKey: null, bucketHighlightType: "active", math: `Slot ${probeIdx} is EMPTY. Probe sequence ends.`, description: `Key '${key}' not found in table. (In linear probing, searches stop at genuinely empty slots).`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        break;
+                    } else if (slot.status === 'TOMBSTONE') {
+                        // Do not stop at a tombstone: a key that collided earlier may be stored after this deleted position.
+                        opSteps.push({ title: `Search: Slot ${probeIdx} is Tombstone ⊗`, badge: { text: "TOMBSTONE", class: "badge-search" }, activeBucket: probeIdx, activeKey: null, bucketHighlightType: "collision", math: `Slot ${probeIdx} is a tombstone ⊗. Key may have collided and probed further.`, description: `Slot ${probeIdx} contains tombstone ⊗. Continuing search to slot (${probeIdx} + 1) % ${cap}...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                    } else if (slot.status === 'OCCUPIED') {
+                        opSteps.push({ title: `Search: Checking Slot ${probeIdx}`, badge: { text: "COMPARE", class: "badge-search" }, activeBucket: probeIdx, activeKey: slot.key, bucketHighlightType: "active", math: `Comparing slot key '${slot.key}' with search key '${key}'`, description: `Checking slot ${probeIdx}: '${slot.key}' vs '${key}'...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        if (slot.key === key) {
+                            found = true;
+                            opSteps.push({ title: `Search: Key '${key}' Found at Slot ${probeIdx}!`, badge: { text: "FOUND", class: "badge-increment" }, activeBucket: probeIdx, activeKey: key, bucketHighlightType: "found", math: `FOUND: Key '${key}' at slot ${probeIdx} &rarr; Value = ${slot.value}`, description: `Key '${key}' found at slot ${probeIdx}! Value = ${slot.value}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                            break;
+                        }
+                    }
+                }
+                // If the loop ended without a match and without already reporting an empty-slot miss, report the full scan result.
+                if (!found && opSteps[opSteps.length - 1].badge.text !== "NOT FOUND") {
+                    opSteps.push({ title: `Search: Full Probe Cycle Finished`, badge: { text: "NOT FOUND", class: "badge-delete" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: `All ${cap} slots checked. Key '${key}' not found in table.`, description: `Key '${key}' not found in table.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                }
+            }
+            return { steps: opSteps, finalTable: simTable, finalSize: simSize };
+        }
+
+        // -------------------- C. DELETE --------------------
+        function generateDeleteSteps(key, baseTable, strat, cap) {
+            const simTable = deepCloneTable(baseTable, strat); // Delete is simulated on a copy just like Insert and Search.
+            let simSize = calculateSize(simTable, strat);
+            const opSteps = [];
+            const hInfo = getHashBreakdown(key, cap);
+            const bucketIndex = hInfo.bucket;
+
+            opSteps.push({ title: `Delete: Compute Hash for '${key}'`, badge: { text: "DELETE", class: "badge-delete" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: hInfo.summaryText, description: `Computing hash for key '${key}' to locate bucket.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+            opSteps.push({ title: `Delete: Checking Bucket ${bucketIndex}`, badge: { text: "DELETE", class: "badge-delete" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `Checking bucket ${bucketIndex}...`, description: `Searching bucket ${bucketIndex} for key '${key}' to delete.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+            if (strat === 'chaining') {
+                const chain = simTable[bucketIndex];
+                let foundIndex = -1; // This stays -1 if the key is not present in this bucket's chain.
+                for (let c = 0; c < chain.length; c++) {
+                    if (chain[c].key === key) { // Remember the position of the matching node.
+                        foundIndex = c;
+                        break;
+                    }
+                }
+
+                if (foundIndex !== -1) {
+                    const removedVal = chain[foundIndex].value;
+                    opSteps.push({ title: `Delete: Key '${key}' Found in Chain`, badge: { text: "REMOVING", class: "badge-delete" }, activeBucket: bucketIndex, activeKey: key, bucketHighlightType: "active", math: `Found key '${key}' with value ${removedVal} in bucket ${bucketIndex}. Removing from chain.`, description: `Found key '${key}' in chain at bucket ${bucketIndex}. Unlinking node.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                    chain.splice(foundIndex, 1); // Remove exactly one array entry at the matching position.
+                    simSize--;                     // One key has been removed from the map.
+                    opSteps.push({ title: `Delete: Key '${key}' Deleted Successfully`, badge: { text: "DELETED", class: "badge-delete" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "found", math: `Separate chaining: removed node ('${key}', ${removedVal}) from chain.`, description: `Key '${key}' deleted from bucket ${bucketIndex}. Table size is now ${simSize}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                } else {
+                    opSteps.push({ title: `Delete: Key Not Found`, badge: { text: "NOT FOUND", class: "badge-delete" }, activeBucket: bucketIndex, activeKey: null, bucketHighlightType: "active", math: `Key '${key}' not found in bucket ${bucketIndex}. Nothing deleted.`, description: `Key '${key}' not found in table. Nothing to delete.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                }
+            } else {
+                // LINEAR PROBING DELETE: we cannot make the slot simply null, because that could break a later search path.
+                let deletedIdx = -1;
+                for (let step = 0; step < cap; step++) {
+                    const probeIdx = (bucketIndex + step) % cap;
+                    const slot = simTable[probeIdx];
+                    if (slot === null) {
+                        opSteps.push({ title: `Delete: Empty Slot ${probeIdx} Reached`, badge: { text: "NOT FOUND", class: "badge-delete" }, activeBucket: probeIdx, activeKey: null, bucketHighlightType: "active", math: `Slot ${probeIdx} is EMPTY. Probe sequence ends.`, description: `Key '${key}' not found in table. Nothing deleted.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        break;
+                    } else if (slot.status === 'TOMBSTONE') {
+                        // Keep going across deleted markers because the key might be stored beyond them.
+                        opSteps.push({ title: `Delete: Skipping Tombstone ⊗ at ${probeIdx}`, badge: { text: "TOMBSTONE", class: "badge-delete" }, activeBucket: probeIdx, activeKey: null, bucketHighlightType: "collision", math: `Slot ${probeIdx} is a tombstone ⊗. Continuing search...`, description: `Slot ${probeIdx} is a tombstone ⊗. Continuing search to (${probeIdx} + 1) % ${cap}...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                    } else if (slot.status === 'OCCUPIED') {
+                        if (slot.key === key) {
+                            deletedIdx = probeIdx; // Store the matching slot; the actual deletion is done after the search loop.
+                            break;
+                        } else {
+                            opSteps.push({ title: `Delete: Probing Past '${slot.key}' at Slot ${probeIdx}`, badge: { text: "PROBING", class: "badge-delete" }, activeBucket: probeIdx, activeKey: slot.key, bucketHighlightType: "active", math: `Slot ${probeIdx} has '${slot.key}' !== '${key}'. Continuing probe...`, description: `Keys do not match. Continuing to next slot...`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                        }
+                    }
+                }
+
+                if (deletedIdx !== -1) {
+                    const oldVal = simTable[deletedIdx].value;
+                    simTable[deletedIdx] = { status: 'TOMBSTONE' }; // Mark as deleted instead of making it null, preserving the probe path for other keys.
+                    simSize--;
+                    opSteps.push({ title: `Delete: Tombstone ⊗ Placed at Slot ${deletedIdx}`, badge: { text: "TOMBSTONE", class: "badge-delete" }, activeBucket: deletedIdx, activeKey: null, bucketHighlightType: "collision", math: `Linear probing: marked slot ${deletedIdx} with tombstone ⊗.`, description: `Key '${key}' found and removed! Placed tombstone ⊗ at slot ${deletedIdx}. Why? A tombstone ensures future searches for keys that collided past this slot will continue probing rather than prematurely stopping at an empty slot.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                } else if (opSteps[opSteps.length - 1].badge.text !== "NOT FOUND") {
+                    opSteps.push({ title: `Delete: Key Not Found`, badge: { text: "NOT FOUND", class: "badge-delete" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: `Key '${key}' not found after full probe. Nothing deleted.`, description: `Key '${key}' not found in table. Nothing deleted.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                }
+            }
+            return { steps: opSteps, finalTable: simTable, finalSize: simSize };
+        }
+
+        // -------------------- D. INCREMENT --------------------
+        function generateIncrementSteps(key, baseTable, strat, cap) {
+            const simTable = deepCloneTable(baseTable, strat); // We still work on a copy so the value change can be animated safely.
+            const simSize = calculateSize(simTable, strat);
+            const opSteps = [];
+            const hInfo = getHashBreakdown(key, cap);
+            const bucketIndex = hInfo.bucket;
+            opSteps.push({ title: `Increment: Locate Key '${key}'`, badge: { text: "INCREMENT", class: "badge-increment" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: hInfo.summaryText, description: `Hashing key '${key}' to find entry and increment its numeric value.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+
+            let targetEntry = null; // This will point to the entry whose value we want to increase.
+            let targetBucket = null;
+            if (strat === 'chaining') {
+                const chain = simTable[bucketIndex];
+                for (let c = 0; c < chain.length; c++) {
+                    if (chain[c].key === key) {
+                        targetEntry = chain[c]; // Remember the matching key/value object.
+                        targetBucket = bucketIndex;
+                        break;
+                    }
+                }
+            } else {
+                // In probing, the key might have moved beyond its original hash index because of earlier collisions.
+                for (let step = 0; step < cap; step++) {
+                    const probeIdx = (bucketIndex + step) % cap;
+                    const slot = simTable[probeIdx];
+                    if (slot === null) break; // A real empty slot tells us the key cannot be farther along this probe sequence.
+                    if (slot.status === 'OCCUPIED' && slot.key === key) {
+                        targetEntry = slot;
+                        targetBucket = probeIdx;
+                        break;
+                    }
+                }
+            }
+
+            if (!targetEntry) {
+                opSteps.push({ title: `Increment: Key Not Found`, badge: { text: "ERROR", class: "badge-delete" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: `Error: Key '${key}' not found in table.`, description: `Error: Cannot increment. Key '${key}' does not exist in the hash table.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+            } else {
+                const numVal = Number(targetEntry.value); // Convert the saved value to a number before adding 1.
+                if (isNaN(numVal)) {
+                    // Text values cannot be incremented, so show a useful error and leave the entry unchanged.
+                    opSteps.push({ title: `Increment: Non-Numeric Value`, badge: { text: "ERROR", class: "badge-delete" }, activeBucket: targetBucket, activeKey: key, bucketHighlightType: "collision", math: `Error: Value '${targetEntry.value}' is not numeric.`, description: `Error: Value for key '${key}' is '${targetEntry.value}', which is not numeric. Cannot increment.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                } else {
+                    const newVal = numVal + 1; // Calculate the new value.
+                    targetEntry.value = newVal; // Update the found entry; the number of stored keys does not change.
+                    opSteps.push({ title: `Increment: Value Incremented!`, badge: { text: "SUCCESS", class: "badge-increment" }, activeBucket: targetBucket, activeKey: key, bucketHighlightType: "found", math: `Key '${key}': ${numVal} + 1 = ${newVal}`, description: `Incremented value for '${key}' from ${numVal} to ${newVal} at bucket ${targetBucket}.`, tableState: deepCloneTable(simTable, strat), size: simSize });
+                }
+            }
+            return { steps: opSteps, finalTable: simTable, finalSize: simSize };
+        }
+
+        // ============================================================
+        // 5. TIMELINE: SHOW EACH SAVED STEP, PLAY, PAUSE AND MOVE BACK
+        // ============================================================
+        function startOperationTimeline(generated) {
+            stopPlayback();                     // Make sure a previous animation is not still running.
+            steps = generated.steps;            // Use the new operation's list of snapshots.
+            currentStepIdx = 0;                  // Start at the first frame.
+
+            // Save the final result separately. The real HashMap is committed when the animation reaches its last step.
+            window._pendingFinalTable = generated.finalTable;
+            window._pendingFinalSize = generated.finalSize;
+
+            renderCurrentStep();                 // Show the first frame immediately.
+            if (steps.length > 1) {              // If there are multiple frames, start the animation automatically.
+                togglePlayPause();
+            }
+        }
+
+        function renderCurrentStep() {
+            if (steps.length === 0) return;      // Nothing to display if no operation has generated any steps.
+            if (currentStepIdx < 0) currentStepIdx = 0; // Keep the selected step inside the valid range.
+            if (currentStepIdx >= steps.length) currentStepIdx = steps.length - 1;
+            const step = steps[currentStepIdx];  // Get the saved snapshot for the frame we are currently showing.
+
+            // 1. Update the operation badge and the 'Step x of y' counter.
+            const badgeEl = document.getElementById("operationBadge");
+            badgeEl.className = `badge-status ${step.badge.class} me-2`;
+            badgeEl.textContent = step.badge.text;
+            document.getElementById("stepCounterText").textContent = `Step ${currentStepIdx + 1} of ${steps.length}`;
+
+            // 2. Put this step's heading, calculation and plain-English explanation into the panel.
+            document.getElementById("stepTitle").textContent = step.title;
+            document.getElementById("stepMath").textContent = step.math;
+            document.getElementById("stepDescription").textContent = step.description;
+
+            // 3. Show which bucket/slot is currently being checked, if this step has one.
+            const bucketInd = document.getElementById("activeBucketIndicator");
+            if (step.activeBucket !== null && step.activeBucket !== undefined) {
+                bucketInd.textContent = `Bucket: ${step.activeBucket}`;
+                bucketInd.className = "badge bg-info text-dark fw-bold";
+            } else {
+                bucketInd.textContent = "Bucket: None";
+                bucketInd.className = "badge bg-secondary";
+            }
+
+            // 4. Keep the timeline slider aligned with the current frame.
+            const slider = document.getElementById("timelineSlider");
+            slider.max = steps.length - 1;
+            slider.value = currentStepIdx;
+
+            // 5. Redraw the table from this step's snapshot and apply its highlight.
+            renderTableDisplay(step.tableState, step.activeBucket, step.activeKey, step.bucketHighlightType);
+
+            // 6. Update the displayed entry count and load factor for this exact point in the animation.
+            document.getElementById("statSize").textContent = step.size;
+            const lf = (step.size / capacity).toFixed(2);
+            document.getElementById("statLoadFactor").textContent = lf;
+
+            // 7. Disable Previous at the first frame and Next at the last frame.
+            document.getElementById("btnPrev").disabled = (currentStepIdx === 0);
+            document.getElementById("btnNext").disabled = (currentStepIdx === steps.length - 1);
+
+            // Once automatic playback reaches the final frame, stop the timer and make the simulated result the real table.
+            if (currentStepIdx === steps.length - 1 && isPlaying) {
+                stopPlayback();
+                if (window._pendingFinalTable) {
+                    currentTable = deepCloneTable(window._pendingFinalTable, strategy);
+                    currentSize = window._pendingFinalSize;
+                }
+            }
+        }
+
+        function stepNext() {
+            stopPlayback();                     // Manual navigation pauses automatic playback first.
+            if (currentStepIdx < steps.length - 1) {
+                currentStepIdx++;                // Move one frame forward, but never beyond the last frame.
+                renderCurrentStep();
+            }
+        }
+
+        function stepPrevious() {
+            stopPlayback();
+            if (currentStepIdx > 0) {
+                currentStepIdx--;                // Move one frame back, but never before the first frame.
+                renderCurrentStep();
+            }
+        }
+
+        function onTimelineSliderScrub(val) {
+            stopPlayback();                      // Dragging the slider is manual control, so pause the timer.
+            currentStepIdx = parseInt(val, 10);  // Convert the slider's text value into a number.
+            renderCurrentStep();
+        }
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                stopPlayback();                  // If it is already running, the same button pauses it.
+            } else {
+                if (currentStepIdx >= steps.length - 1) currentStepIdx = 0; // Start from the beginning if we were already at the end.
+                isPlaying = true;
+                document.getElementById("playIcon").className = "fa fa-pause";
+                document.getElementById("playText").textContent = "Pause";
+                playTimer = setInterval(() => {
+                    if (currentStepIdx < steps.length - 1) {
+                        currentStepIdx++;        // Advance exactly one saved frame each time the timer fires.
+                        renderCurrentStep();
+                    } else {
+                        stopPlayback();           // Stop cleanly after the last frame.
+                    }
+                }, stepDelay);
+            }
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            if (playTimer) {
+                clearInterval(playTimer);         // Cancel the repeating timer so it cannot update the page again.
+                playTimer = null;
+            }
+            document.getElementById("playIcon").className = "fa fa-play";
+            document.getElementById("playText").textContent = "Play";
+        }
+
+        function updateSpeed() {
+            const val = parseInt(document.getElementById("speedSlider").value, 10); // Read the selected delay in milliseconds.
+            stepDelay = val;
+            document.getElementById("speedLabel").textContent = (val / 1000).toFixed(1) + "s"; // Show the same delay in seconds.
+            if (isPlaying) {
+                stopPlayback();                  // Restart playback so the new speed takes effect immediately.
+                togglePlayPause();
+            }
+        }
+
+        // ============================================================
+        // 6. DRAW THE HASH TABLE AND KEEP THE STATISTICS UP TO DATE
+        // ============================================================
+        function renderTableDisplay(tableState, activeBucket, activeKey, highlightType) {
+            const container = document.getElementById("bucketRow");
+            container.innerHTML = "";            // Clear the previous drawing so we can draw the selected step from scratch.
+
+            for (let i = 0; i < capacity; i++) {
+                const box = document.createElement("div"); // Create one visual box for bucket/slot i.
+                box.className = "bucket-box";
+                box.id = `bucket-box-${i}`;
+
+                // Colour the bucket that this algorithm step is currently visiting.
+                if (activeBucket === i) {
+                    if (highlightType === "collision") box.classList.add("collision");
+                    else if (highlightType === "found") box.classList.add("found");
+                    else box.classList.add("active");
+                }
+
+                // Every bucket shows its array index, whether it is empty or occupied.
+                const idxSpan = document.createElement("span");
+                idxSpan.className = "bucket-index";
+                idxSpan.textContent = `[ ${i} ]`;
+                box.appendChild(idxSpan);
+
+                if (strategy === 'chaining') {
+                    const chain = tableState[i] || []; // Read the linked-list-like array stored at this bucket.
+                    if (chain.length === 0) {
+                        const emptyDiv = document.createElement("div");
+                        emptyDiv.className = "text-muted pt-2";
+                        emptyDiv.style.fontSize = "12px";
+                        emptyDiv.textContent = "(empty)";
+                        box.appendChild(emptyDiv);
+                    } else {
+                        chain.forEach((entry, idx) => {
+                            if (idx > 0) {
+                                const conn = document.createElement("div");
+                                conn.className = "chain-connector";
+                                conn.textContent = "↓"; // Show that another entry follows in this bucket's chain.
+                                box.appendChild(conn);
+                            }
+                            const entryDiv = document.createElement("div");
+                            entryDiv.className = "bucket-entry";
+                            if (activeBucket === i && activeKey === entry.key) entryDiv.classList.add("highlight-node"); // Highlight the exact key being compared or changed.
+                            entryDiv.innerHTML = `<strong>${entry.key}</strong> : ${entry.value}`;
+                            box.appendChild(entryDiv);
+                        });
+                    }
+                } else {
+                    // LINEAR PROBING: a slot is either empty, marked as deleted, or occupied by one key/value pair.
+                    const slot = tableState[i];
+                    if (slot === null) {
+                        const emptyDiv = document.createElement("div");
+                        emptyDiv.className = "text-muted pt-2";
+                        emptyDiv.style.fontSize = "12px";
+                        emptyDiv.textContent = "(empty)";
+                        box.appendChild(emptyDiv);
+                    } else if (slot.status === 'TOMBSTONE') {
+                        const tombDiv = document.createElement("div");
+                        tombDiv.className = "pt-1";
+                        tombDiv.innerHTML = `<span class="tombstone-marker">⊗</span><div class="tombstone-text">TOMBSTONE</div>`;
+                        box.appendChild(tombDiv);
+                    } else {
+                        // This is a normal occupied slot, so display its key and value.
+                        const entryDiv = document.createElement("div");
+                        entryDiv.className = "bucket-entry pt-2";
+                        if (activeBucket === i && activeKey === slot.key) entryDiv.classList.add("highlight-node");
+                        entryDiv.innerHTML = `<strong>${slot.key}</strong><br><span style="color:#58b7ff">${slot.value}</span>`;
+                        box.appendChild(entryDiv);
+                    }
+                }
+                container.appendChild(box);       // Put the completed bucket box onto the page.
+            }
+        }
+
+        function updateStats() {
+            document.getElementById("statSize").textContent = currentSize; // Number of saved key/value pairs.
+            document.getElementById("statCapacity").textContent = capacity; // Total number of buckets/slots.
+            document.getElementById("maxBucketIndex").textContent = capacity - 1; // Array indexing starts at zero, so the last index is capacity minus one.
+            const lf = (currentSize / capacity).toFixed(2); // Load factor = stored entries divided by table capacity.
+            document.getElementById("statLoadFactor").textContent = lf;
+            document.getElementById("tableModeBadge").textContent = (strategy === 'chaining') ? 'Separate Chaining' : 'Linear Probing';
+        }
+
+        // ============================================================
+        // 7. BUTTON HANDLERS: READ INPUT, VALIDATE IT AND START AN ALGORITHM
+        // ============================================================
+        function handleInsert() {
+            commitPendingOperation(); // Finish the previous operation before using its result as the starting table for this one.
+            const key = document.getElementById("keyInput").value.trim();
+            const val = document.getElementById("valInput").value.trim();
+            if (!key) {
+                alert("Please enter a valid key!"); // A blank key cannot be used to find a bucket reliably.
+                return;
+            }
+            const res = generateInsertSteps(key, val, currentTable, strategy, capacity); // Build the insert snapshots.
+            startOperationTimeline(res); // Show the snapshots in the step player.
+        }
+
+        function handleSearch() {
+            commitPendingOperation();
+            const key = document.getElementById("keyInput").value.trim();
+            if (!key) {
+                alert("Please enter a key to search!");
+                return;
+            }
+            const res = generateSearchSteps(key, currentTable, strategy, capacity); // Search only reads the table and creates explanation frames.
+            startOperationTimeline(res);
+        }
+
+        function handleDelete() {
+            commitPendingOperation();
+            const key = document.getElementById("keyInput").value.trim();
+            if (!key) {
+                alert("Please enter a key to delete!");
+                return;
+            }
+            const res = generateDeleteSteps(key, currentTable, strategy, capacity);
+            startOperationTimeline(res);
+        }
+
+        function handleIncrement() {
+            commitPendingOperation();
+            const key = document.getElementById("keyInput").value.trim();
+            if (!key) {
+                alert("Please enter a key to increment!");
+                return;
+            }
+            const res = generateIncrementSteps(key, currentTable, strategy, capacity);
+            startOperationTimeline(res);
+        }
+
+        function handleReset() {
+            commitPendingOperation();
+            resetAll(true); // Clear every entry, but keep the currently selected strategy and capacity.
+        }
+
+        // The demo inserts four sample entries one after another and combines all their steps into one long timeline.
+        function handleRunExample() {
+            commitPendingOperation();
+            stopPlayback();
+
+            // Start this demo from an empty table, but keep the user's selected strategy and capacity.
+            currentTable = initEmptyTable(capacity, strategy);
+            currentSize = 0;
+
+            const exampleItems = [
+                { key: "Alice", val: 25 },
+                { key: "Bob", val: 30 },
+                { key: "Charlie", val: 22 },
+                { key: "Bhavesh", val: 20 }
+            ];
+
+            let masterSteps = []; // This will contain the steps for all four insertions in the right order.
+            let workingTable = deepCloneTable(currentTable, strategy);
+            let workingSize = 0;
+
+            // Add a first frame explaining which entries are about to be inserted.
+            masterSteps.push({ title: "Run Example: Starting Batch", badge: { text: "EXAMPLE", class: "badge-example" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: "Example sequence: ('Alice', 25) &rarr; ('Bob', 30) &rarr; ('Charlie', 22) &rarr; ('Bhavesh', 20)", description: "Starting full example run. All 4 items will be inserted sequentially with real hash calculation.", tableState: deepCloneTable(workingTable, strategy), size: 0 });
+
+            exampleItems.forEach((item, idx) => {
+                // Run the normal insert algorithm for this item using the result of the previous item.
+                const res = generateInsertSteps(item.key, item.val, workingTable, strategy, capacity);
+                res.steps.forEach(st => {
+                    st.title = `[Example ${idx + 1}/4] ` + st.title; // Label each frame so the user knows which sample entry is being handled.
+                    masterSteps.push(st);
+                });
+                workingTable = res.finalTable; // The next sample must be inserted into the table produced by this one.
+                workingSize = res.finalSize;
+            });
+
+            // Finish with one frame that shows the final table after all sample entries have been processed.
+            masterSteps.push({ title: "Run Example: Completed All Insertions", badge: { text: "DONE", class: "badge-increment" }, activeBucket: null, activeKey: null, bucketHighlightType: "none", math: `All 4 items successfully stored in HashMap. Final Size = ${workingSize}.`, description: "Example run finished! You can step backward or forward through any point in the timeline.", tableState: deepCloneTable(workingTable, strategy), size: workingSize });
+
+            startOperationTimeline({ steps: masterSteps, finalTable: workingTable, finalSize: workingSize });
+        }
+
+        function commitPendingOperation() {
+            // The operation is simulated first. This function copies its final result into the real table before a new action starts.
+            if (window._pendingFinalTable) {
+                currentTable = deepCloneTable(window._pendingFinalTable, strategy);
+                currentSize = window._pendingFinalSize;
+                window._pendingFinalTable = null; // Clear the pending marker so this same result is not committed repeatedly.
+            }
+        }
+
+        // Quick preset buttons only fill the input boxes; they do not insert anything until an operation button is clicked.
+        function setInputs(k, v) {
+            document.getElementById("keyInput").value = k;
+            document.getElementById("valInput").value = v;
+        }
+
+        // Change between collision strategies and rebuild an empty table because the two strategies use different data layouts.
+        function setStrategy(strat) {
+            if (strat === strategy) return; // Clicking the already-selected method does not need any work.
+            commitPendingOperation();
+            strategy = strat;
+
+            // Update the active look of the two strategy selectors so the screen matches the selected variable.
+            document.getElementById("pillChaining").classList.toggle("active", strat === 'chaining');
+            document.getElementById("pillProbing").classList.toggle("active", strat === 'probing');
+
+            const statusText = (strat === 'chaining')
+                ? "Separate Chaining allows multiple entries per bucket via linked chains."
+                : "Linear Probing resolves collisions by stepping sequentially (curr + 1) % cap.";
+            document.getElementById("strategyStatusText").textContent = statusText;
+
+            resetAll(true); // Clear old entries and rebuild the table in the newly selected format.
+        }
+
+        // Change the table size after checking that the entered capacity is within the allowed range.
+        function applyCapacityChange() {
+            const newCap = parseInt(document.getElementById("capacityInput").value, 10);
+            if (isNaN(newCap) || newCap < 2 || newCap > 32) {
+                alert("Please enter a valid capacity between 2 and 32.");
+                return;
+            }
+            capacity = newCap;
+            resetAll(true); // Resizing starts with a fresh table at the new capacity; existing entries are cleared in this code.
+        }
+
+        // The navbar changes the active tab and then triggers the matching operation where appropriate.
+        function setMode(mode) {
+            const navLinks = document.querySelectorAll("#appNavbar a");
+            navLinks.forEach(a => a.classList.remove("active")); // Remove the active colour from every navigation link.
+
+            const targetNav = document.getElementById(`nav-${mode}`);
+            if (targetNav) targetNav.classList.add("active"); // Highlight the link the user selected.
+
+            if (mode === 'insert') {
+                document.getElementById("keyInput").focus(); // Insert tab waits for the user to enter the key/value and click Insert.
+            } else if (mode === 'search') {
+                document.getElementById("keyInput").focus();
+                handleSearch(); // Search starts immediately using the key currently in the input box.
+            } else if (mode === 'delete') {
+                document.getElementById("keyInput").focus();
+                handleDelete();
+            } else if (mode === 'increment') {
+                document.getElementById("keyInput").focus();
+                handleIncrement();
+            } else if (mode === 'reset_example') {
+                handleRunExample(); // This tab runs the prepared demo sequence.
+            }
+        }
+
+        // When the browser finishes loading the page, create the initial empty HashMap and draw it on screen.
+        window.onload = function() {
+            resetAll(true);
+        };
+    </script>
+</body>
+</html>
+
